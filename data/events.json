@@ -81,6 +81,15 @@
     "message": "Power backplane 2 entered low-draw eco mode. Solid amber enclosure warning illuminated on Bay 01."
   },
   {
+    "source_id": "EV-LOG-SRV003-0002",
+    "device_id": "SRV-003",
+    "timestamp": "2026-10-20T08:25:00Z",
+    "facility": "power",
+    "severity": "CRITICAL",
+    "event_code": "EVT-PSU-FAIL",
+    "message": "[CRIT] SRV-003: Power supply unit 2 AC feed disconnected. Redundancy lost. Backplane throttled to low-power state. Drive bay solid amber indicator active."
+  },
+  {
     "source_id": "EV-LOG-SRV005-0001",
     "device_id": "SRV-005",
     "timestamp": "2026-10-20T08:30:00Z",

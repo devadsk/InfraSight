@@ -31,10 +31,10 @@ In strict compliance with the **New Work Only** rule of the Meta Global AI Devel
   - Authoritative inventory: 5 servers (`SRV-001` to `SRV-005`), models `SYNTH-SERVER-X` and `SYNTH-SERVER-Y`.
   - SMART telemetry snapshots, kernel event logs with realistic noise and deliberate prompt-injection security tests.
   - 15 original technical manual sections with model-specific behavioral differences (solid amber LED predictive failure on Model X vs power-mode mismatch on Model Y).
-  - 12 hand-designed ground truth benchmark scenarios (`data/scenarios.json`).
-  - 9 programmatic Pillow drive bay renders (`data/images/`) with varying LED states and optical labels.
+  - 13 hand-designed ground truth benchmark scenarios (`data/scenarios.json`).
+  - 10 programmatic Pillow drive bay renders (`data/images/`) with varying LED states and optical labels.
   - Deterministic Evidence Engine (`backend/evidence.py`): device resolution, stable ID verification (`resolve_source_id`), and physical HSV pixel hue analysis with red wrap-around and blinking detection.
-  - Full unit test suite (`tests/test_evidence.py`) passing 17/17 tests including 100% hash reproducibility.
+  - Full unit test suite (`tests/test_evidence.py`, `tests/test_validation.py`) passing 20/20 tests including 100% hash reproducibility and referential integrity.
 - **Phase 3–7:** Planned vertical slice (orchestrator, policy engine, SQLite audit ledger, Streamlit frontend).
 
 ---

@@ -1,6 +1,6 @@
 {
-  "DIAG-CONFIRM-DRV4": {
-    "diagnostic_id": "DIAG-CONFIRM-DRV4",
+  "EV-DIAG-SRV004-BAY04-CONFIRM": {
+    "diagnostic_id": "EV-DIAG-SRV004-BAY04-CONFIRM",
     "target_device": "SRV-004",
     "target_component": "BAY-04",
     "test_type": "smart_extended_self_test",
@@ -14,14 +14,14 @@
       "recommendation": "immediate_replacement"
     }
   },
-  "DIAG-CONTRADICT-DRV1": {
-    "diagnostic_id": "DIAG-CONTRADICT-DRV1",
+  "EV-DIAG-SRV001-BAY02-CONTRADICT": {
+    "diagnostic_id": "EV-DIAG-SRV001-BAY02-CONTRADICT",
     "target_device": "SRV-001",
     "target_component": "BAY-02",
     "test_type": "surface_sector_verification",
     "status": "completed",
     "execution_time_s": 3.8,
-    "result_summary": "All 34 pending sectors successfully verified and re-written without errors. Zero permanent defects. Initial failure hypothesis contradicted.",
+    "result_summary": "All 34 pending sectors successfully verified and re-written without errors. Zero permanent defects. Initial failure hypothesis contradicted per MAN-TELEMETRY-01.",
     "metrics": {
       "pending_sectors_remaining": 0,
       "reallocated_sectors": 0,
@@ -29,8 +29,8 @@
       "recommendation": "retain_in_service"
     }
   },
-  "DIAG-TIMEOUT-SRV5": {
-    "diagnostic_id": "DIAG-TIMEOUT-SRV5",
+  "EV-DIAG-SRV005-BAY03-TIMEOUT": {
+    "diagnostic_id": "EV-DIAG-SRV005-BAY03-TIMEOUT",
     "target_device": "SRV-005",
     "target_component": "BAY-03",
     "test_type": "controller_bus_health_check",
@@ -44,8 +44,8 @@
       "recommendation": "reschedule_diagnostic"
     }
   },
-  "DIAG-POST-REPLACE-DRV4": {
-    "diagnostic_id": "DIAG-POST-REPLACE-DRV4",
+  "EV-DIAG-SRV004-BAY04-REPLACE": {
+    "diagnostic_id": "EV-DIAG-SRV004-BAY04-REPLACE",
     "target_device": "SRV-004",
     "target_component": "BAY-04",
     "test_type": "post_replacement_initialization",

@@ -72,6 +72,16 @@ class DiagnosticRecord(BaseModel):
     error_code: Optional[str] = None
 
 
+class InvestigationStatus(str, Enum):
+    CONFIRMED = "confirmed"
+    NOT_CONFIRMED = "not_confirmed"
+    RESOLVED_IN_SIMULATION = "resolved_in_simulation"
+    UNRESOLVED = "unresolved"
+    MORE_EVIDENCE_REQUIRED = "more_evidence_required"
+    DIAGNOSTIC_EXECUTION_FAILED = "diagnostic_execution_failed"
+    NEEDS_CLARIFICATION = "needs_clarification"
+
+
 class ConfidenceEnum(str, Enum):
     LOW = "low"
     MEDIUM = "medium"
@@ -81,6 +91,7 @@ class ConfidenceEnum(str, Enum):
 class DiagnosisOutput(BaseModel):
     incident_summary: str = Field(description="Summary of the incident observations and findings")
     suspected_component: str = Field(description="Identified hardware component or subsystem")
+    status: InvestigationStatus = Field(description="Outcome status of the investigation")
     confidence: ConfidenceEnum = Field(description="Categorical confidence level")
     likely_cause: str = Field(description="Evidence-backed root cause determination")
     recommended_action: str = Field(description="Recommended diagnostic or remediation procedure")

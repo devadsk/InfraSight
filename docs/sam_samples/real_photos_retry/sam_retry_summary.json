@@ -1,0 +1,56 @@
+[
+  {
+    "call": 1,
+    "photo": "external_hard_disk.jpeg",
+    "concept": "LED",
+    "status_code": 200,
+    "box_count": 1,
+    "matched": true,
+    "overlay_file": "docs\\sam_samples\\real_photos_retry\\call_1_external_hard_disk_LED_overlay.jpg"
+  },
+  {
+    "call": 2,
+    "photo": "external_hard_disk.jpeg",
+    "concept": "light",
+    "status_code": 200,
+    "box_count": 1,
+    "matched": true,
+    "overlay_file": "docs\\sam_samples\\real_photos_retry\\call_2_external_hard_disk_light_overlay.jpg"
+  },
+  {
+    "call": 3,
+    "photo": "Raspberrypi.jpg",
+    "concept": "LED",
+    "status_code": 200,
+    "box_count": 1,
+    "matched": true,
+    "overlay_file": "docs\\sam_samples\\real_photos_retry\\call_3_Raspberrypi_LED_overlay.jpg"
+  },
+  {
+    "call": 4,
+    "photo": "Raspberrypi.jpg",
+    "concept": "indicator light",
+    "status_code": 200,
+    "box_count": 1,
+    "matched": true,
+    "overlay_file": "docs\\sam_samples\\real_photos_retry\\call_4_Raspberrypi_indicator_light_overlay.jpg"
+  },
+  {
+    "call": 5,
+    "photo": "router.jpeg",
+    "concept": "LED",
+    "status_code": 200,
+    "box_count": 0,
+    "matched": false,
+    "overlay_file": "docs\\sam_samples\\real_photos_retry\\call_5_router_LED_overlay.jpg"
+  },
+  {
+    "call": 6,
+    "photo": "router.jpeg",
+    "concept": "small circle",
+    "status_code": 200,
+    "box_count": 4,
+    "matched": true,
+    "overlay_file": "docs\\sam_samples\\real_photos_retry\\call_6_router_small_circle_overlay.jpg"
+  }
+]
