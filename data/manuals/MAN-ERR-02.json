@@ -1,0 +1,7 @@
+{
+  "source_id": "MAN-ERR-02",
+  "title": "Troubleshooting Code ERR-RAID-DEGRADE: Array Degraded",
+  "model_id": "SYNTH-SERVER-X",
+  "category": "ERROR_CODES",
+  "content": "Error code ERR-RAID-DEGRADE signifies that an array is operating with reduced redundancy due to a missing or offline member. A single additional member failure may cause unrecoverable data loss in RAID-5 configurations. Administrators must immediately identify the degraded bay, inspect disk SMART telemetry, and initiate drive replacement or spare assignment."
+}

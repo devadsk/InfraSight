@@ -1,0 +1,7 @@
+{
+  "source_id": "MAN-REPLACE-02",
+  "title": "Hot-Swap Drive Service Protocol for SYNTH-SERVER-Y",
+  "model_id": "SYNTH-SERVER-Y",
+  "category": "PROCEDURE",
+  "content": "SYNTH-SERVER-Y drive sleds require electronic unlock authorization through the management console before mechanical ejection. Operators must issue the unlock signal, observe the illumination of the blue bay locate LED, and slide the lock slider to the left. Pull the sled straight forward. Do not jar adjacent sleds, as rotational vibration dampening on high-density 8-bay arrays is sensitive to mechanical shock during full-speed operation."
+}

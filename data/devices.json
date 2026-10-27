@@ -1,0 +1,95 @@
+[
+  {
+    "device_id": "SRV-001",
+    "asset_id": "ASSET-001",
+    "model_id": "SYNTH-SERVER-X",
+    "rack_location": "RACK-A1-U04",
+    "serial_number": "SN-SYNTH-X-1001",
+    "bay_count": 4,
+    "bays": [
+      "BAY-01",
+      "BAY-02",
+      "BAY-03",
+      "BAY-04"
+    ],
+    "ip_address": "10.0.1.11",
+    "status": "online",
+    "description": "Primary edge compute node"
+  },
+  {
+    "device_id": "SRV-002",
+    "asset_id": "ASSET-002",
+    "model_id": "SYNTH-SERVER-X",
+    "rack_location": "RACK-A1-U08",
+    "serial_number": "SN-SYNTH-X-1002",
+    "bay_count": 4,
+    "bays": [
+      "BAY-01",
+      "BAY-02",
+      "BAY-03",
+      "BAY-04"
+    ],
+    "ip_address": "10.0.1.12",
+    "status": "online",
+    "description": "Staging application node"
+  },
+  {
+    "device_id": "SRV-003",
+    "asset_id": "ASSET-003",
+    "model_id": "SYNTH-SERVER-Y",
+    "rack_location": "RACK-A2-U12",
+    "serial_number": "SN-SYNTH-Y-2003",
+    "bay_count": 8,
+    "bays": [
+      "BAY-01",
+      "BAY-02",
+      "BAY-03",
+      "BAY-04",
+      "BAY-05",
+      "BAY-06",
+      "BAY-07",
+      "BAY-08"
+    ],
+    "ip_address": "10.0.2.21",
+    "status": "online",
+    "description": "High-density analytics database"
+  },
+  {
+    "device_id": "SRV-004",
+    "asset_id": "ASSET-004",
+    "model_id": "SYNTH-SERVER-X",
+    "rack_location": "RACK-B1-U04",
+    "serial_number": "SN-SYNTH-X-1004",
+    "bay_count": 4,
+    "bays": [
+      "BAY-01",
+      "BAY-02",
+      "BAY-03",
+      "BAY-04"
+    ],
+    "ip_address": "10.0.3.31",
+    "status": "degraded",
+    "description": "Core storage gateway (Hero incident server)"
+  },
+  {
+    "device_id": "SRV-005",
+    "asset_id": "ASSET-005",
+    "model_id": "SYNTH-SERVER-Y",
+    "rack_location": "RACK-B2-U16",
+    "serial_number": "SN-SYNTH-Y-2005",
+    "bay_count": 8,
+    "bays": [
+      "BAY-01",
+      "BAY-02",
+      "BAY-03",
+      "BAY-04",
+      "BAY-05",
+      "BAY-06",
+      "BAY-07",
+      "BAY-08"
+    ],
+    "ip_address": "10.0.4.41",
+    "status": "online",
+    "description": "Long-term cold storage archive"
+  }
+]

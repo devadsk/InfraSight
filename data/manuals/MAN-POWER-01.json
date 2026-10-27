@@ -1,0 +1,7 @@
+{
+  "source_id": "MAN-POWER-01",
+  "title": "Chassis Power Distribution and Backplane Balancing",
+  "model_id": "SYNTH-SERVER-Y",
+  "category": "POWER",
+  "content": "SYNTH-SERVER-Y utilizes dual redundant 1200W hot-plug power supplies. The backplane enforces balanced load sharing across 12V rails feeding the 8-bay drive cage. If one power supply unit is disconnected or encounters AC phase discrepancy, the chassis restricts total bay spindle spin-up current to prevent catastrophic voltage sag."
+}

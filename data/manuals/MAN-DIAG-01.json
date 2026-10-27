@@ -1,0 +1,7 @@
+{
+  "source_id": "MAN-DIAG-01",
+  "title": "Controlled Execution of Diagnostic Self-Tests",
+  "model_id": "SYNTH-SERVER-X",
+  "category": "DIAGNOSTICS",
+  "content": "The storage management utility permits execution of non-disruptive short self-tests and disruptive extended surface scans. Short self-tests evaluate electrical and mechanical sub-components within two minutes without taking the disk offline. Extended surface scans inspect all logical block addresses and require between 30 and 120 minutes depending on media capacity."
+}

@@ -1,0 +1,63 @@
+{
+  "DIAG-CONFIRM-DRV4": {
+    "diagnostic_id": "DIAG-CONFIRM-DRV4",
+    "target_device": "SRV-004",
+    "target_component": "BAY-04",
+    "test_type": "smart_extended_self_test",
+    "status": "completed",
+    "execution_time_s": 4.2,
+    "result_summary": "Self-test failed: uncorrectable read error encountered at LBA 0x02a1b94c. Media degradation confirmed.",
+    "metrics": {
+      "lba_failure": "0x02a1b94c",
+      "smart_test_result": "fatal_read_failure",
+      "hardware_health": "failed",
+      "recommendation": "immediate_replacement"
+    }
+  },
+  "DIAG-CONTRADICT-DRV1": {
+    "diagnostic_id": "DIAG-CONTRADICT-DRV1",
+    "target_device": "SRV-001",
+    "target_component": "BAY-02",
+    "test_type": "surface_sector_verification",
+    "status": "completed",
+    "execution_time_s": 3.8,
+    "result_summary": "All 34 pending sectors successfully verified and re-written without errors. Zero permanent defects. Initial failure hypothesis contradicted.",
+    "metrics": {
+      "pending_sectors_remaining": 0,
+      "reallocated_sectors": 0,
+      "hardware_health": "healthy",
+      "recommendation": "retain_in_service"
+    }
+  },
+  "DIAG-TIMEOUT-SRV5": {
+    "diagnostic_id": "DIAG-TIMEOUT-SRV5",
+    "target_device": "SRV-005",
+    "target_component": "BAY-03",
+    "test_type": "controller_bus_health_check",
+    "status": "failed",
+    "execution_time_s": 120.0,
+    "error_code": "ERR_BUS_TIMEOUT_120S",
+    "result_summary": "Diagnostic command execution timed out after 120 seconds. Storage controller I2C bus unresponsive.",
+    "metrics": {
+      "bus_response": null,
+      "hardware_health": "unknown",
+      "recommendation": "reschedule_diagnostic"
+    }
+  },
+  "DIAG-POST-REPLACE-DRV4": {
+    "diagnostic_id": "DIAG-POST-REPLACE-DRV4",
+    "target_device": "SRV-004",
+    "target_component": "BAY-04",
+    "test_type": "post_replacement_initialization",
+    "status": "completed",
+    "execution_time_s": 5.1,
+    "result_summary": "Replacement disk successfully initialized: Serial SYNTH-DRV-NEW-99. RAID mirror resynchronization complete. SMART health healthy. LED restored to solid green.",
+    "metrics": {
+      "new_serial": "SYNTH-DRV-NEW-99",
+      "reallocated_sectors": 0,
+      "smart_status": "healthy",
+      "raid_status": "optimal",
+      "led_indicator": "green_solid"
+    }
+  }
+}

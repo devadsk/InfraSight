@@ -1,0 +1,7 @@
+{
+  "source_id": "MAN-ERR-03",
+  "title": "Troubleshooting Code ERR-TEMP-HIGH: Storage Bay Over-Temperature",
+  "model_id": "SYNTH-SERVER-X",
+  "category": "ERROR_CODES",
+  "content": "Code ERR-TEMP-HIGH indicates that drive internal thermal sensors report temperatures exceeding 55 degrees Celsius. Prolonged exposure to elevated thermal states accelerates sector degradation and spindle bearing wear. Ensure chassis front air intake filters are clean, fans are operating at commanded PWM duty cycles, and cable management does not obstruct horizontal airflow across the drive cage."
+}

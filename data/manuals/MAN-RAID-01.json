@@ -1,0 +1,7 @@
+{
+  "source_id": "MAN-RAID-01",
+  "title": "RAID Subsystem Consistency Operations on SYNTH-SERVER-X",
+  "model_id": "SYNTH-SERVER-X",
+  "category": "RAID",
+  "content": "The embedded hardware RAID controller on SYNTH-SERVER-X manages parity generation and background patrol scrubbing. When a degraded array begins automatic resynchronization to a replacement or spare disk, the affected bay enters rebuild state. During rebuild, the drive tray displays a blinking amber LED. Normal I/O access is preserved during the process, though sequential write throughput is throttled. Technicians must never remove a drive displaying a blinking amber light unless the management console explicitly confirms array reconstruction has aborted."
+}

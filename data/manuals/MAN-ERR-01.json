@@ -1,0 +1,7 @@
+{
+  "source_id": "MAN-ERR-01",
+  "title": "Troubleshooting Code ERR-SMART-004: Predictive Failure Asserted",
+  "model_id": "SYNTH-SERVER-X",
+  "category": "ERROR_CODES",
+  "content": "Error code ERR-SMART-004 occurs when internal drive microcode detects that critical wear metrics\u2014such as reallocated sector count or head flying height calibration\u2014have exceeded manufacturer safety limits. While the drive may still service read requests, write errors and data corruption become imminent. The recommended corrective action is immediate replacement within 24 hours under controlled maintenance approval."
+}

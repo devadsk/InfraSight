@@ -1,0 +1,7 @@
+{
+  "source_id": "MAN-FIRMWARE-01",
+  "title": "Storage Controller Microcode Version Compatibility",
+  "model_id": "SYNTH-SERVER-X",
+  "category": "FIRMWARE",
+  "content": "SYNTH-SERVER-X SAS host bus adapters require firmware revision 21.00.04.00 or higher for reliable predictive failure assertion. Systems operating on superseded firmware may fail to communicate drive carrier LED signals reliably."
+}

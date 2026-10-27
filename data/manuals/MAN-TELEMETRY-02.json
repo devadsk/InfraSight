@@ -1,0 +1,7 @@
+{
+  "source_id": "MAN-TELEMETRY-02",
+  "title": "NVMe Media Health and Wear Leveling Indicators",
+  "model_id": "SYNTH-SERVER-X",
+  "category": "TELEMETRY",
+  "content": "Solid-state NVMe media monitored under SYNTH-SERVER-X report wear percentage, percentage used, and media errors in standard log page 0x02. When available spare capacity drops below 10%, the controller asserts non-critical telemetry warnings. If percentage used reaches 100%, write endurance limits have been exhausted."
+}

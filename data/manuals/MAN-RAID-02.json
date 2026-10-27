@@ -1,0 +1,7 @@
+{
+  "source_id": "MAN-RAID-02",
+  "title": "Degraded Array Operation on SYNTH-SERVER-Y",
+  "model_id": "SYNTH-SERVER-Y",
+  "category": "RAID",
+  "content": "SYNTH-SERVER-Y systems implement dual-parity RAID-6 across 8-bay drive arrays. When single drive failure occurs, the virtual volume enters degraded status without immediate interruption to data access. Hot-spare activation automatically reassigns parity blocks to unallocated reserve media. Storage administrators should inspect event telemetry to verify whether automated spare assignment was successful before physically servicing the enclosure."
+}

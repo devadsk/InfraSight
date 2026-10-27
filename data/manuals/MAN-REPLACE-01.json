@@ -1,0 +1,7 @@
+{
+  "source_id": "MAN-REPLACE-01",
+  "title": "Hot-Swap Drive Replacement Procedure for SYNTH-SERVER-X",
+  "model_id": "SYNTH-SERVER-X",
+  "category": "PROCEDURE",
+  "content": "To replace a defective hard drive or solid-state disk in SYNTH-SERVER-X: First, verify through management tools that the target drive bay is offline and that array data is redundant. Press the release latch on the carrier handle to swing the lever downward. Firmly pull the carrier outward along the guide rails. Mount the replacement disk of identical or greater capacity into the tray with four mounting screws. Slide the tray into the chassis until the lever engages, then press the latch closed until an audible click is heard. The indicator will illuminate solid amber briefly before switching to blinking amber as resynchronization initiates."
+}

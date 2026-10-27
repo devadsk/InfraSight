@@ -1,0 +1,7 @@
+{
+  "source_id": "MAN-TELEMETRY-01",
+  "title": "Interpreting Reallocated and Pending Sector Metrics",
+  "model_id": "SYNTH-SERVER-X",
+  "category": "TELEMETRY",
+  "content": "SMART Attribute 05 (Reallocated Sector Count) tracks the transfer of unstable sectors to reserve tracks. A low non-zero count (1-5) may indicate benign manufacturing variance. A continuous upward trend across snapshots indicates surface degradation. SMART Attribute 197 (Current Pending Sector Count) denotes unstable sectors waiting for remap upon next write. Disks exhibiting simultaneous reallocated and pending sector growth must be retired."
+}
