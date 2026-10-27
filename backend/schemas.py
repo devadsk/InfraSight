@@ -88,14 +88,21 @@ class ConfidenceEnum(str, Enum):
     HIGH = "high"
 
 
-class DiagnosisOutput(BaseModel):
-    incident_summary: str = Field(description="Summary of the incident observations and findings")
-    suspected_component: str = Field(description="Identified hardware component or subsystem")
-    status: InvestigationStatus = Field(description="Outcome status of the investigation")
-    confidence: ConfidenceEnum = Field(description="Categorical confidence level")
-    likely_cause: str = Field(description="Evidence-backed root cause determination")
-    recommended_action: str = Field(description="Recommended diagnostic or remediation procedure")
-    cited_evidence_ids: List[str] = Field(description="Immutable source IDs supporting the conclusion")
+class Diagnosis(BaseModel):
+    incident_id: str = Field(..., description="Unique incident identifier")
+    device_id: str = Field(..., description="Identified server chassis ID")
+    component_id: Optional[str] = Field(None, description="Identified component or bay")
+    status: InvestigationStatus = Field(..., description="Outcome status of the investigation")
+    confidence: str = Field(..., description="Categorical confidence: 'low', 'medium', or 'high'")
+    summary: str = Field(..., description="Summary of the incident observations and findings")
+    reasoning: str = Field(..., description="Evidence-backed root cause explanation")
+    decision_summary: List[str] = Field(default_factory=list, description="Short decision points for UI timeline")
+    supporting_evidence_ids: List[str] = Field(default_factory=list, description="Immutable source IDs supporting the conclusion")
+    contradictory_evidence_ids: List[str] = Field(default_factory=list, description="Source IDs presenting contradictory or refuting data")
+
+
+# Backwards compatibility alias
+DiagnosisOutput = Diagnosis
 
 
 class ReliabilityEnum(str, Enum):
