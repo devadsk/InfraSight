@@ -129,6 +129,17 @@ def validate_all() -> bool:
                 print(f"  Error: Image {fn} maps to invalid hardware {d_id}/{b_id}")
     check("4.1 Generated Image Filenames & Labels map to real inventory", img_labels_ok)
 
+    # 1.3 Scenarios 9, 10, 11 Policy Fields Assertion
+    policy_fields_ok = True
+    for sid in ["SCN-09", "SCN-10", "SCN-11"]:
+        scen = next((s for s in scenarios if s["scenario_id"] == sid), None)
+        if not scen:
+            policy_fields_ok = False
+        elif "expected_denied_actions" not in scen or "expected_policy_outcome" not in scen:
+            policy_fields_ok = False
+            print(f"  Error: {sid} missing expected_denied_actions or expected_policy_outcome")
+    check("1.3 Scenarios 9, 10, 11 define expected_denied_actions and expected_policy_outcome", policy_fields_ok)
+
     # 5. LED Colour Consistency with Scenario Expectations
     led_color_ok = True
     for s in scenarios:
@@ -138,7 +149,7 @@ def validate_all() -> bool:
             continue
         meas = analyze_led_pixels(ref)
         # Expected color mappings by scenario
-        if sid in ["SCN-01", "SCN-08", "SCN-09"]:
+        if sid in ["SCN-01", "SCN-08", "SCN-09", "SCN-13"]:
             if meas.detected_color != "amber":
                 led_color_ok = False
                 print(f"  Error: {sid} expected amber LED but measured '{meas.detected_color}' on {ref}")

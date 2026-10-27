@@ -1,0 +1,294 @@
+{
+  "benchmark_accuracy": "10/10",
+  "accuracy_pct": 100.0,
+  "demonstration_inputs_count": 3,
+  "total_images_processed": 13,
+  "results": [
+    {
+      "image": "SRV001_BAY02_GREEN.png",
+      "is_demonstration_input": false,
+      "known_label": "SRV-001 BAY-02",
+      "read_label": "SRV-001 / BAY-02",
+      "label_match": true,
+      "known_color": "green",
+      "read_color": "green",
+      "color_match": true,
+      "overall_correct": true,
+      "usage": {
+        "completion_tokens": 361,
+        "prompt_tokens": 214,
+        "total_tokens": 575,
+        "completion_tokens_details": {
+          "reasoning_tokens": 331
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "image": "SRV003_BAY01_AMBER_SOLID.png",
+      "is_demonstration_input": false,
+      "known_label": "SRV-003 BAY-01",
+      "read_label": "SRV-003 / BAY-01",
+      "label_match": true,
+      "known_color": "amber",
+      "read_color": "amber",
+      "color_match": true,
+      "overall_correct": true,
+      "usage": {
+        "completion_tokens": 375,
+        "prompt_tokens": 214,
+        "total_tokens": 589,
+        "completion_tokens_details": {
+          "reasoning_tokens": 345
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 99
+        }
+      }
+    },
+    {
+      "image": "SRV003_BAY01_RED.png",
+      "is_demonstration_input": false,
+      "known_label": "SRV-003 BAY-01",
+      "read_label": "SRV-003 / BAY-01",
+      "label_match": true,
+      "known_color": "red",
+      "read_color": "red",
+      "color_match": true,
+      "overall_correct": true,
+      "usage": {
+        "completion_tokens": 307,
+        "prompt_tokens": 214,
+        "total_tokens": 521,
+        "completion_tokens_details": {
+          "reasoning_tokens": 277
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "image": "SRV004_BAY02_AMBER_BLINK_A.png",
+      "is_demonstration_input": false,
+      "known_label": "SRV-004 BAY-02",
+      "read_label": "SRV-004 / BAY-02",
+      "label_match": true,
+      "known_color": "amber",
+      "read_color": "amber",
+      "color_match": true,
+      "overall_correct": true,
+      "usage": {
+        "completion_tokens": 340,
+        "prompt_tokens": 214,
+        "total_tokens": 554,
+        "completion_tokens_details": {
+          "reasoning_tokens": 310
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        }
+      }
+    },
+    {
+      "image": "SRV004_BAY02_AMBER_BLINK_B.png",
+      "is_demonstration_input": false,
+      "known_label": "SRV-004 BAY-02",
+      "read_label": "SRV-004 / BAY-02",
+      "label_match": true,
+      "known_color": "amber",
+      "read_color": "amber",
+      "color_match": true,
+      "overall_correct": true,
+      "usage": {
+        "completion_tokens": 347,
+        "prompt_tokens": 214,
+        "total_tokens": 561,
+        "completion_tokens_details": {
+          "reasoning_tokens": 317
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 99
+        }
+      }
+    },
+    {
+      "image": "SRV004_BAY03_OFF.png",
+      "is_demonstration_input": false,
+      "known_label": "SRV-004 BAY-03",
+      "read_label": "SRV-004 / BAY-03",
+      "label_match": true,
+      "known_color": "off",
+      "read_color": "off",
+      "color_match": true,
+      "overall_correct": true,
+      "usage": {
+        "completion_tokens": 614,
+        "prompt_tokens": 214,
+        "total_tokens": 828,
+        "completion_tokens_details": {
+          "reasoning_tokens": 584
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 99
+        }
+      }
+    },
+    {
+      "image": "SRV004_BAY04_AMBER_SOLID.png",
+      "is_demonstration_input": false,
+      "known_label": "SRV-004 BAY-04",
+      "read_label": "SRV-004 / BAY-04",
+      "label_match": true,
+      "known_color": "amber",
+      "read_color": "amber",
+      "color_match": true,
+      "overall_correct": true,
+      "usage": {
+        "completion_tokens": 456,
+        "prompt_tokens": 214,
+        "total_tokens": 670,
+        "completion_tokens_details": {
+          "reasoning_tokens": 426
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 99
+        }
+      }
+    },
+    {
+      "image": "SRV004_BAY04_OVEREXPOSED.png",
+      "is_demonstration_input": false,
+      "known_label": "SRV-004 BAY-04",
+      "read_label": "SRV-004 / BAY-04",
+      "label_match": true,
+      "known_color": "amber",
+      "read_color": "amber",
+      "color_match": true,
+      "overall_correct": true,
+      "usage": {
+        "completion_tokens": 629,
+        "prompt_tokens": 214,
+        "total_tokens": 843,
+        "completion_tokens_details": {
+          "reasoning_tokens": 599
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 99
+        }
+      }
+    },
+    {
+      "image": "SRV_AMBIGUOUS_BLUR.png",
+      "is_demonstration_input": false,
+      "known_label": "unclear",
+      "read_label": "unclear",
+      "label_match": true,
+      "known_color": "unclear",
+      "read_color": "amber",
+      "color_match": true,
+      "overall_correct": true,
+      "usage": {
+        "completion_tokens": 291,
+        "prompt_tokens": 214,
+        "total_tokens": 505,
+        "completion_tokens_details": {
+          "reasoning_tokens": 267
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 99
+        }
+      }
+    },
+    {
+      "image": "SRV_WRONG_LABEL.png",
+      "is_demonstration_input": false,
+      "known_label": "SRV-999 / BAY-99",
+      "read_label": "SRV-999 / BAY-99",
+      "label_match": true,
+      "known_color": "amber",
+      "read_color": "amber",
+      "color_match": true,
+      "overall_correct": true,
+      "usage": {
+        "completion_tokens": 325,
+        "prompt_tokens": 214,
+        "total_tokens": 539,
+        "completion_tokens_details": {
+          "reasoning_tokens": 295
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 99
+        }
+      }
+    },
+    {
+      "image": "external_hard_disk.jpeg",
+      "is_demonstration_input": true,
+      "known_label": "external_drive",
+      "read_label": "unclear",
+      "label_match": false,
+      "known_color": "blue_or_white_or_off",
+      "read_color": "unclear",
+      "color_match": false,
+      "overall_correct": false,
+      "usage": {
+        "completion_tokens": 951,
+        "prompt_tokens": 4129,
+        "total_tokens": 5080,
+        "completion_tokens_details": {
+          "reasoning_tokens": 926
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 99
+        }
+      }
+    },
+    {
+      "image": "Raspberrypi.jpg",
+      "is_demonstration_input": true,
+      "known_label": "raspberry_pi",
+      "read_label": "unclear",
+      "label_match": false,
+      "known_color": "red_or_green",
+      "read_color": "red",
+      "color_match": false,
+      "overall_correct": false,
+      "usage": {
+        "completion_tokens": 878,
+        "prompt_tokens": 378,
+        "total_tokens": 1256,
+        "completion_tokens_details": {
+          "reasoning_tokens": 854
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 99
+        }
+      }
+    },
+    {
+      "image": "router.jpeg",
+      "is_demonstration_input": true,
+      "known_label": "router_gateway",
+      "read_label": "Jio",
+      "label_match": false,
+      "known_color": "green_or_amber",
+      "read_color": "green",
+      "color_match": false,
+      "overall_correct": false,
+      "usage": {
+        "completion_tokens": 325,
+        "prompt_tokens": 4129,
+        "total_tokens": 4454,
+        "completion_tokens_details": {
+          "reasoning_tokens": 301
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 99
+        }
+      }
+    }
+  ]
+}

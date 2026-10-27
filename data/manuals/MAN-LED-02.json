@@ -3,5 +3,5 @@
   "title": "Drive Enclosure Indicator Meanings for SYNTH-SERVER-Y",
   "model_id": "SYNTH-SERVER-Y",
   "category": "LED_INDICATORS",
-  "content": "For SYNTH-SERVER-Y high-density chassis, LED signaling conforms to the Model Y Enclosure Standard. A solid green light indicates normal drive function. In contrast to Model X systems, a solid amber indicator on Model Y denotes an Enclosure Power Mode Mismatch or power-supply redundancy warning across the backplane; it does not indicate physical drive failure. A predictive drive failure on Model Y is signaled exclusively by a fast blinking amber light (4 Hz). Technicians must verify server model identification before diagnosing solid amber indicators on Model Y hardware."
+  "content": "For SYNTH-SERVER-Y high-density chassis, LED signaling conforms to the Model Y Enclosure Standard. A solid green light indicates normal drive function. In contrast to Model X systems, a solid amber indicator on Model Y denotes an Enclosure Power Mode Mismatch or power-supply redundancy warning across the backplane; it does not indicate physical drive failure. A predictive drive failure on Model Y is signaled exclusively by a blinking amber light. Technicians must verify server model identification before diagnosing solid amber indicators on Model Y hardware."
 }

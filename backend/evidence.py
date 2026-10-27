@@ -100,10 +100,14 @@ def resolve_source_id(source_id: str) -> Dict[str, Any]:
                 return m
         raise KeyError(f"Manual section not found for source ID: '{sid}'")
 
-    # Diagnostics
-    if sid.startswith("DIAG-"):
+    # Diagnostics (EV-DIAG-... or legacy DIAG-...)
+    if sid.startswith("EV-DIAG-") or sid.startswith("DIAG-"):
         if sid in _DIAGNOSTICS_CACHE:
             return _DIAGNOSTICS_CACHE[sid]
+        # Also check with/without EV- prefix
+        alt_id = sid[3:] if sid.startswith("EV-") else f"EV-{sid}"
+        if alt_id in _DIAGNOSTICS_CACHE:
+            return _DIAGNOSTICS_CACHE[alt_id]
         raise KeyError(f"Diagnostic record not found for source ID: '{sid}'")
 
     # Image measurements
@@ -373,10 +377,12 @@ def get_diagnostic_result(diagnostic_id: str) -> EvidenceRecord:
     """
     Retrieves simulated diagnostic result for validation loops.
     """
-    if diagnostic_id not in _DIAGNOSTICS_CACHE:
+    diag = _DIAGNOSTICS_CACHE.get(diagnostic_id)
+    if not diag:
+        alt_id = diagnostic_id[3:] if diagnostic_id.startswith("EV-") else f"EV-{diagnostic_id}"
+        diag = _DIAGNOSTICS_CACHE.get(alt_id)
+    if not diag:
         raise KeyError(f"Diagnostic record '{diagnostic_id}' does not exist in diagnostics fixture")
-
-    diag = _DIAGNOSTICS_CACHE[diagnostic_id]
     rec = EvidenceRecord(
         source_id=diag["diagnostic_id"],
         evidence_type=EvidenceType.DIAGNOSTIC,

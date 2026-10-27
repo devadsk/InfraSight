@@ -1,0 +1,49 @@
+{
+  "top_logprobs": 0,
+  "temperature": 1.0,
+  "top_p": 1.0,
+  "service_tier": "auto",
+  "model": "sam-3.1",
+  "background": false,
+  "tools": [],
+  "tool_choice": "auto",
+  "truncation": "disabled",
+  "id": "resp_6ae0c8ad5694205759e54ece",
+  "object": "response",
+  "status": "completed",
+  "created_at": 1793116333.0,
+  "completed_at": 1793116333.0,
+  "error": null,
+  "incomplete_details": null,
+  "output": [
+    {
+      "type": "message",
+      "id": "msg_3a44fdee-2892-432f-b767-6b57e751212b",
+      "role": "assistant",
+      "content": [
+        {
+          "type": "output_text",
+          "text": "<0f>0<|box;x1=215;y1=176;x2=233;y2=202;w=304;h=657|><|mask;x=0;y=0;data=27,19,~!!!$a!0o%X/Jx:MGN{x3[7dLHGfn@A/9vyRDD.UlMgDN'hJyT8k(Sa[5PR*Ul$E9(Y%Lc!qS*HS#4&-+6#--(peNxi2jHI2-Gvuzl_zKI$u2bW3$BWNQ?2W8.-/E#K^y0!?'^@fTy`4{#zl0VoNMqp-.oJ.1'_:Ym7*^vlV0aIOQGAlkME*lI'UWfha7jBH-$@kaDF]K[K1T=$55'C?(!95c&*7I-ruW[uVCfXj-@'OL:98Z@wVd!={FRa4xhJCG/6r-V_pDRQ3)UW'^lx+gqD9V]_eQVPx9/:|>\n",
+          "annotations": [],
+          "logprobs": []
+        }
+      ],
+      "status": "completed"
+    }
+  ],
+  "instructions": null,
+  "usage": {
+    "input_tokens": 0,
+    "input_tokens_details": {
+      "cached_tokens": 0
+    },
+    "output_tokens": 0,
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    },
+    "total_tokens": 0,
+    "images_processed": 1
+  },
+  "parallel_tool_calls": true,
+  "store": true
+}
