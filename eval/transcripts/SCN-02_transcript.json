@@ -1,0 +1,1630 @@
+{
+  "scenario_id": "SCN-02",
+  "incident_description": "Amber LED observed on server SRV-004 bay 2. Technician suspects drive has failed and requests immediate replacement authorization.",
+  "image_path": "data/images/SRV004_BAY02_AMBER_BLINK_A.png",
+  "elapsed_seconds": 0.12,
+  "total_steps": 18,
+  "total_tokens": 41028,
+  "total_cost_usd": 0.0204,
+  "final_diagnosis": {
+    "incident_id": "INC-SRV-004-BAY-02-AMBER",
+    "device_id": "SRV-004",
+    "component_id": "BAY-02",
+    "status": "not_confirmed",
+    "confidence": "high",
+    "summary": "SRV-004 BAY-02 healthy; amber LED is expected blinking rebuild indicator, replacement not authorized.",
+    "reasoning": "SMART telemetry for BAY-02 shows healthy status with 0 reallocated and 0 pending sectors, predictive failure cleared, temp 36C, and raid_status=rebuilding at 68.4%. System log EVT-RAID-RESYNC-ACTIVE explicitly states BAY-02 undergoing background consistency rebuild with blinking amber indicator active. Vendor manual defines blinking amber as active RAID reconstruction that must not be removed, while solid amber denotes predictive failure requiring replacement. Logs show true predictive failure and reallocated sector warnings are on BAY-04, not BAY-02. Amber image alone cannot distinguish solid vs blinking and is explained by rebuild.",
+    "decision_summary": [
+      "Deny immediate replacement authorization for SRV-004 BAY-02",
+      "Allow RAID rebuild to complete to 100% and verify return to green",
+      "Do not remove drive during blinking amber rebuild per manual",
+      "Investigate BAY-04 separately as actual failed drive"
+    ],
+    "supporting_evidence_ids": [
+      "EV-TEL-SRV004-BAY02-S1",
+      "EV-LOG-SRV004-0014",
+      "MAN-LED-01",
+      "MAN-RAID-01",
+      "EV-LOG-SRV004-0011",
+      "EV-LOG-SRV004-0013",
+      "EV-LOG-SRV004-0012"
+    ],
+    "contradictory_evidence_ids": [
+      "EV-IMG-SRV004_BAY02_AMBER_BLINK_A",
+      "EV-IMG-SRV004_BAY02_AMBER_BLINK_A-VISION"
+    ]
+  },
+  "verification": {
+    "is_valid": true,
+    "downgraded": false,
+    "reasons": [],
+    "invented_ids": [],
+    "unregistered_ids": [],
+    "final_status": "not_confirmed",
+    "confidence": "high"
+  },
+  "audit_events": [
+    {
+      "event_id": 5,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:17:19.887580+00:00",
+      "step_number": 0,
+      "event_type": "incident_received",
+      "details": {
+        "user_text": "Technician reports amber LED on SRV-001 BAY-02. Suspects failed drive.",
+        "images": []
+      }
+    },
+    {
+      "event_id": 6,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:17:19.894940+00:00",
+      "step_number": 0,
+      "event_type": "perception_completed",
+      "details": {
+        "observations": []
+      }
+    },
+    {
+      "event_id": 24,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:20:23.498039+00:00",
+      "step_number": 0,
+      "event_type": "incident_received",
+      "details": {
+        "user_text": "Technician reports amber LED on SRV-001 BAY-02. Suspects failed drive.",
+        "images": []
+      }
+    },
+    {
+      "event_id": 25,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:20:23.505217+00:00",
+      "step_number": 0,
+      "event_type": "perception_completed",
+      "details": {
+        "observations": []
+      }
+    },
+    {
+      "event_id": 49,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:23:17.021683+00:00",
+      "step_number": 0,
+      "event_type": "incident_received",
+      "details": {
+        "user_text": "Technician reports amber LED on SRV-001 BAY-02. Suspects failed drive.",
+        "images": []
+      }
+    },
+    {
+      "event_id": 50,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:23:17.028064+00:00",
+      "step_number": 0,
+      "event_type": "perception_completed",
+      "details": {
+        "observations": []
+      }
+    },
+    {
+      "event_id": 74,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:23:32.455636+00:00",
+      "step_number": 0,
+      "event_type": "incident_received",
+      "details": {
+        "user_text": "Technician reports amber LED on SRV-001 BAY-02. Suspects failed drive.",
+        "images": []
+      }
+    },
+    {
+      "event_id": 75,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:23:32.462273+00:00",
+      "step_number": 0,
+      "event_type": "perception_completed",
+      "details": {
+        "observations": []
+      }
+    },
+    {
+      "event_id": 95,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:27:09.772679+00:00",
+      "step_number": 0,
+      "event_type": "incident_received",
+      "details": {
+        "user_text": "Amber LED observed on server SRV-004 bay 2. Technician suspects drive has failed and requests immediate replacement authorization.",
+        "images": [
+          "data/images/SRV004_BAY02_AMBER_BLINK_A.png"
+        ]
+      }
+    },
+    {
+      "event_id": 96,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:27:15.607978+00:00",
+      "step_number": 0,
+      "event_type": "perception_completed",
+      "details": {
+        "observations": [
+          {
+            "source_id": "EV-IMG-SRV004_BAY02_AMBER_BLINK_A",
+            "type": "pixel_analysis",
+            "detected_color": "amber",
+            "is_blinking": null,
+            "reliability": "high",
+            "summary": "Physical pixel analysis detected amber LED (blinking=None)."
+          },
+          {
+            "source_id": "EV-IMG-SRV004_BAY02_AMBER_BLINK_A-VISION",
+            "type": "vision_model",
+            "label_read": "SRV-004 / BAY-02",
+            "led_color": "amber",
+            "description": "Simplified dark square bay front with a horizontal slot at the top, a black label plate in the middle, and a round illuminated indicator at the bottom center."
+          }
+        ]
+      }
+    },
+    {
+      "event_id": 119,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:29:21.899913+00:00",
+      "step_number": 0,
+      "event_type": "incident_received",
+      "details": {
+        "user_text": "Amber LED observed on server SRV-004 bay 2. Technician suspects drive has failed and requests immediate replacement authorization.",
+        "images": [
+          "data/images/SRV004_BAY02_AMBER_BLINK_A.png"
+        ]
+      }
+    },
+    {
+      "event_id": 120,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:29:21.926783+00:00",
+      "step_number": 0,
+      "event_type": "perception_completed",
+      "details": {
+        "observations": [
+          {
+            "source_id": "EV-IMG-SRV004_BAY02_AMBER_BLINK_A",
+            "type": "pixel_analysis",
+            "detected_color": "amber",
+            "is_blinking": null,
+            "reliability": "high",
+            "summary": "Physical pixel analysis detected amber LED (blinking=None)."
+          },
+          {
+            "source_id": "EV-IMG-SRV004_BAY02_AMBER_BLINK_A-VISION",
+            "type": "vision_model",
+            "label_read": "SRV-004 / BAY-02",
+            "led_color": "amber",
+            "description": "Simplified dark square bay front with a horizontal slot at the top, a black label plate in the middle, and a round illuminated indicator at the bottom center."
+          }
+        ]
+      }
+    },
+    {
+      "event_id": 143,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:31:18.074889+00:00",
+      "step_number": 0,
+      "event_type": "incident_received",
+      "details": {
+        "user_text": "Amber LED observed on server SRV-004 bay 2. Technician suspects drive has failed and requests immediate replacement authorization.",
+        "images": [
+          "data/images/SRV004_BAY02_AMBER_BLINK_A.png"
+        ]
+      }
+    },
+    {
+      "event_id": 144,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:31:18.094499+00:00",
+      "step_number": 0,
+      "event_type": "perception_completed",
+      "details": {
+        "observations": [
+          {
+            "source_id": "EV-IMG-SRV004_BAY02_AMBER_BLINK_A",
+            "type": "pixel_analysis",
+            "detected_color": "amber",
+            "is_blinking": null,
+            "reliability": "high",
+            "summary": "Physical pixel analysis detected amber LED (blinking=None)."
+          },
+          {
+            "source_id": "EV-IMG-SRV004_BAY02_AMBER_BLINK_A-VISION",
+            "type": "vision_model",
+            "label_read": "SRV-004 / BAY-02",
+            "led_color": "amber",
+            "description": "Simplified dark square bay front with a horizontal slot at the top, a black label plate in the middle, and a round illuminated indicator at the bottom center."
+          }
+        ]
+      }
+    },
+    {
+      "event_id": 26,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:20:23.512475+00:00",
+      "step_number": 1,
+      "event_type": "tool_call",
+      "details": {
+        "tool": "get_health_metrics",
+        "arguments": {
+          "device_id": "SRV-001",
+          "bay_id": "BAY-02"
+        }
+      }
+    },
+    {
+      "event_id": 27,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:20:23.519651+00:00",
+      "step_number": 1,
+      "event_type": "tool_result",
+      "details": {
+        "tool": "get_health_metrics",
+        "result": {
+          "status": "execution_error",
+          "error": "'list' object has no attribute 'get'"
+        },
+        "is_error": true
+      }
+    },
+    {
+      "event_id": 51,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:23:17.035410+00:00",
+      "step_number": 1,
+      "event_type": "tool_call",
+      "details": {
+        "tool": "get_health_metrics",
+        "arguments": {
+          "device_id": "SRV-001",
+          "bay_id": "BAY-02"
+        }
+      }
+    },
+    {
+      "event_id": 52,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:23:17.041928+00:00",
+      "step_number": 1,
+      "event_type": "tool_result",
+      "details": {
+        "tool": "get_health_metrics",
+        "result": {
+          "status": "success",
+          "count": 1,
+          "metrics": [
+            {
+              "source_id": "EV-TEL-SRV001-BAY02-S1",
+              "title": "Drive Telemetry SRV-001 BAY-02",
+              "summary": "SMART Telemetry for SRV-001/BAY-02: Status=warning, PredictiveFailure=CLEARED, ReallocatedSectors=0, PendingSectors=34, RAID=optimal.",
+              "payload": {
+                "source_id": "EV-TEL-SRV001-BAY02-S1",
+                "device_id": "SRV-001",
+                "bay_id": "BAY-02",
+                "timestamp": "2026-10-20T08:45:00Z",
+                "drive_model": "SYNTH-DRV-NVME-1.92T",
+                "serial_number": "SAMSUNG-SYNTH-1102",
+                "capacity_tb": 1.92,
+                "temperature_c": 38,
+                "power_on_hours": 8900,
+                "reallocated_sectors": 0,
+                "current_pending_sectors": 34,
+                "predictive_failure": false,
+                "read_error_rate": 84,
+                "smart_status": "warning",
+                "raid_status": "optimal"
+              }
+            }
+          ]
+        },
+        "is_error": false
+      }
+    },
+    {
+      "event_id": 76,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:23:32.470234+00:00",
+      "step_number": 1,
+      "event_type": "tool_call",
+      "details": {
+        "tool": "get_health_metrics",
+        "arguments": {
+          "device_id": "SRV-001",
+          "bay_id": "BAY-02"
+        }
+      }
+    },
+    {
+      "event_id": 77,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:23:32.477459+00:00",
+      "step_number": 1,
+      "event_type": "tool_result",
+      "details": {
+        "tool": "get_health_metrics",
+        "result": {
+          "status": "success",
+          "count": 1,
+          "metrics": [
+            {
+              "source_id": "EV-TEL-SRV001-BAY02-S1",
+              "title": "Drive Telemetry SRV-001 BAY-02",
+              "summary": "SMART Telemetry for SRV-001/BAY-02: Status=warning, PredictiveFailure=CLEARED, ReallocatedSectors=0, PendingSectors=34, RAID=optimal.",
+              "payload": {
+                "source_id": "EV-TEL-SRV001-BAY02-S1",
+                "device_id": "SRV-001",
+                "bay_id": "BAY-02",
+                "timestamp": "2026-10-20T08:45:00Z",
+                "drive_model": "SYNTH-DRV-NVME-1.92T",
+                "serial_number": "SAMSUNG-SYNTH-1102",
+                "capacity_tb": 1.92,
+                "temperature_c": 38,
+                "power_on_hours": 8900,
+                "reallocated_sectors": 0,
+                "current_pending_sectors": 34,
+                "predictive_failure": false,
+                "read_error_rate": 84,
+                "smart_status": "warning",
+                "raid_status": "optimal"
+              }
+            }
+          ]
+        },
+        "is_error": false
+      }
+    },
+    {
+      "event_id": 97,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:27:18.605049+00:00",
+      "step_number": 1,
+      "event_type": "tool_call",
+      "details": {
+        "tool": "lookup_device",
+        "arguments": {
+          "device_id": "SRV-004"
+        }
+      }
+    },
+    {
+      "event_id": 98,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:27:18.616042+00:00",
+      "step_number": 1,
+      "event_type": "tool_result",
+      "details": {
+        "tool": "lookup_device",
+        "result": {
+          "status": "execution_error",
+          "error": "module 'backend.evidence' has no attribute 'load_devices'"
+        },
+        "is_error": true
+      }
+    },
+    {
+      "event_id": 99,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:27:18.627990+00:00",
+      "step_number": 1,
+      "event_type": "tool_call",
+      "details": {
+        "tool": "get_health_metrics",
+        "arguments": {
+          "bay_id": "BAY-02",
+          "device_id": "SRV-004"
+        }
+      }
+    },
+    {
+      "event_id": 100,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:27:18.639332+00:00",
+      "step_number": 1,
+      "event_type": "tool_result",
+      "details": {
+        "tool": "get_health_metrics",
+        "result": {
+          "status": "success",
+          "count": 1,
+          "metrics": [
+            {
+              "source_id": "EV-TEL-SRV004-BAY02-S1",
+              "title": "Drive Telemetry SRV-004 BAY-02",
+              "summary": "SMART Telemetry for SRV-004/BAY-02: Status=healthy, PredictiveFailure=CLEARED, ReallocatedSectors=0, PendingSectors=0, RAID=rebuilding.",
+              "payload": {
+                "source_id": "EV-TEL-SRV004-BAY02-S1",
+                "device_id": "SRV-004",
+                "bay_id": "BAY-02",
+                "timestamp": "2026-10-20T08:35:00Z",
+                "drive_model": "SYNTH-DRV-SAS-3.84T",
+                "serial_number": "WDC-SYNTH-98422",
+                "capacity_tb": 3.84,
+                "temperature_c": 36,
+                "power_on_hours": 12400,
+                "reallocated_sectors": 0,
+                "current_pending_sectors": 0,
+                "predictive_failure": false,
+                "read_error_rate": 0,
+                "smart_status": "healthy",
+                "raid_status": "rebuilding",
+                "rebuild_progress_pct": 68.4
+              }
+            }
+          ]
+        },
+        "is_error": false
+      }
+    },
+    {
+      "event_id": 101,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:27:18.649974+00:00",
+      "step_number": 1,
+      "event_type": "tool_call",
+      "details": {
+        "tool": "get_recent_events",
+        "arguments": {
+          "device_id": "SRV-004",
+          "limit": 20
+        }
+      }
+    },
+    {
+      "event_id": 102,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:27:18.660075+00:00",
+      "step_number": 1,
+      "event_type": "tool_result",
+      "details": {
+        "tool": "get_recent_events",
+        "result": {
+          "status": "success",
+          "count": 5,
+          "events": [
+            {
+              "source_id": "EV-LOG-SRV004-0010",
+              "title": "Event EVT-DISK-MOUNT on SRV-004",
+              "summary": "[INFO] SRV-004 (EVT-DISK-MOUNT): Storage volume /dev/vg_data0 mounted cleanly on controller 0.",
+              "payload": {
+                "source_id": "EV-LOG-SRV004-0010",
+                "device_id": "SRV-004",
+                "timestamp": "2026-10-20T06:00:00Z",
+                "facility": "storage",
+                "severity": "INFO",
+                "event_code": "EVT-DISK-MOUNT",
+                "message": "Storage volume /dev/vg_data0 mounted cleanly on controller 0."
+              }
+            },
+            {
+              "source_id": "EV-LOG-SRV004-0011",
+              "title": "Event EVT-SMART-WARN on SRV-004",
+              "summary": "[WARNING] SRV-004 (EVT-SMART-WARN): Drive BAY-04 serial WDC-SYNTH-98441 crossed reallocated sector warning threshold (count=48).",
+              "payload": {
+                "source_id": "EV-LOG-SRV004-0011",
+                "device_id": "SRV-004",
+                "timestamp": "2026-10-20T07:00:00Z",
+                "facility": "storage",
+                "severity": "WARNING",
+                "event_code": "EVT-SMART-WARN",
+                "message": "Drive BAY-04 serial WDC-SYNTH-98441 crossed reallocated sector warning threshold (count=48)."
+              }
+            },
+            {
+              "source_id": "EV-LOG-SRV004-0012",
+              "title": "Event EVT-SCSI-TIMEOUT on SRV-004",
+              "summary": "[ERROR] SRV-004 (EVT-SCSI-TIMEOUT): scsi 0:0:3:0: Device not ready: sense key Medium Error, ASC 0x11 ASCQ 0x00 (read error unrecovered).",
+              "payload": {
+                "source_id": "EV-LOG-SRV004-0012",
+                "device_id": "SRV-004",
+                "timestamp": "2026-10-20T08:15:00Z",
+                "facility": "kernel",
+                "severity": "ERROR",
+                "event_code": "EVT-SCSI-TIMEOUT",
+                "message": "scsi 0:0:3:0: Device not ready: sense key Medium Error, ASC 0x11 ASCQ 0x00 (read error unrecovered)."
+              }
+            },
+            {
+              "source_id": "EV-LOG-SRV004-0013",
+              "title": "Event EVT-DRV-PREDICT-FAIL on SRV-004",
+              "summary": "[CRITICAL] SRV-004 (EVT-DRV-PREDICT-FAIL): Controller 0 port 3: SMART predictive failure asserted on BAY-04. Amber fault indicator enabled.",
+              "payload": {
+                "source_id": "EV-LOG-SRV004-0013",
+                "device_id": "SRV-004",
+                "timestamp": "2026-10-20T08:45:00Z",
+                "facility": "storage",
+                "severity": "CRITICAL",
+                "event_code": "EVT-DRV-PREDICT-FAIL",
+                "message": "Controller 0 port 3: SMART predictive failure asserted on BAY-04. Amber fault indicator enabled."
+              }
+            },
+            {
+              "source_id": "EV-LOG-SRV004-0014",
+              "title": "Event EVT-RAID-RESYNC-ACTIVE on SRV-004",
+              "summary": "[INFO] SRV-004 (EVT-RAID-RESYNC-ACTIVE): md0: Disk in BAY-02 undergoing background consistency rebuild (68% complete). Blinking amber activity indicator active.",
+              "payload": {
+                "source_id": "EV-LOG-SRV004-0014",
+                "device_id": "SRV-004",
+                "timestamp": "2026-10-20T08:35:00Z",
+                "facility": "raid",
+                "severity": "INFO",
+                "event_code": "EVT-RAID-RESYNC-ACTIVE",
+                "message": "md0: Disk in BAY-02 undergoing background consistency rebuild (68% complete). Blinking amber activity indicator active."
+              }
+            }
+          ]
+        },
+        "is_error": false
+      }
+    },
+    {
+      "event_id": 103,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:27:18.669812+00:00",
+      "step_number": 1,
+      "event_type": "tool_call",
+      "details": {
+        "tool": "search_manual",
+        "arguments": {
+          "model_id": "SYNTH-SERVER-X",
+          "query": "amber LED bay status meanings"
+        }
+      }
+    },
+    {
+      "event_id": 104,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:27:18.681836+00:00",
+      "step_number": 1,
+      "event_type": "tool_result",
+      "details": {
+        "tool": "search_manual",
+        "result": {
+          "status": "success",
+          "count": 5,
+          "model_filter": "SYNTH-SERVER-X",
+          "sections": [
+            {
+              "source_id": "MAN-LED-01",
+              "title": "Drive Tray Status Indicator Patterns for SYNTH-SERVER-X",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - LED_INDICATORS]: On the SYNTH-SERVER-X chassis, each front drive bay is equipped with a dual-color LED status indicator. A solid green indicator signifies normal opera...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "On the SYNTH-SERVER-X chassis, each front drive bay is equipped with a dual-color LED status indicator. A solid green indicator signifies normal operational activity with healthy SMART telemetry. A blinking green indicator designates active disk read/write throughput. A solid amber indicator denotes a predictive failure warning or unrecoverable hardware threshold breach: the disk has exceeded internal spare sector reallocation limits or recorded uncorrected read errors and must be replaced. A blinking amber indicator signifies that the disk is participating in an active RAID array reconstruction or parity rebuild operation and must not be removed."
+            },
+            {
+              "source_id": "MAN-RAID-01",
+              "title": "RAID Subsystem Consistency Operations on SYNTH-SERVER-X",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - RAID]: The embedded hardware RAID controller on SYNTH-SERVER-X manages parity generation and background patrol scrubbing. When a degraded array begins automa...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "The embedded hardware RAID controller on SYNTH-SERVER-X manages parity generation and background patrol scrubbing. When a degraded array begins automatic resynchronization to a replacement or spare disk, the affected bay enters rebuild state. During rebuild, the drive tray displays a blinking amber LED. Normal I/O access is preserved during the process, though sequential write throughput is throttled. Technicians must never remove a drive displaying a blinking amber light unless the management console explicitly confirms array reconstruction has aborted."
+            },
+            {
+              "source_id": "MAN-ERR-03",
+              "title": "Troubleshooting Code ERR-TEMP-HIGH: Storage Bay Over-Temperature",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - ERROR_CODES]: Code ERR-TEMP-HIGH indicates that drive internal thermal sensors report temperatures exceeding 55 degrees Celsius. Prolonged exposure to elevated ther...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "Code ERR-TEMP-HIGH indicates that drive internal thermal sensors report temperatures exceeding 55 degrees Celsius. Prolonged exposure to elevated thermal states accelerates sector degradation and spindle bearing wear. Ensure chassis front air intake filters are clean, fans are operating at commanded PWM duty cycles, and cable management does not obstruct horizontal airflow across the drive cage."
+            },
+            {
+              "source_id": "MAN-DIAG-01",
+              "title": "Controlled Execution of Diagnostic Self-Tests",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - DIAGNOSTICS]: The storage management utility permits execution of non-disruptive short self-tests and disruptive extended surface scans. Short self-tests evaluate e...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "The storage management utility permits execution of non-disruptive short self-tests and disruptive extended surface scans. Short self-tests evaluate electrical and mechanical sub-components within two minutes without taking the disk offline. Extended surface scans inspect all logical block addresses and require between 30 and 120 minutes depending on media capacity."
+            },
+            {
+              "source_id": "MAN-REPLACE-01",
+              "title": "Hot-Swap Drive Replacement Procedure for SYNTH-SERVER-X",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - PROCEDURE]: To replace a defective hard drive or solid-state disk in SYNTH-SERVER-X: First, verify through management tools that the target drive bay is offline a...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "To replace a defective hard drive or solid-state disk in SYNTH-SERVER-X: First, verify through management tools that the target drive bay is offline and that array data is redundant. Press the release latch on the carrier handle to swing the lever downward. Firmly pull the carrier outward along the guide rails. Mount the replacement disk of identical or greater capacity into the tray with four mounting screws. Slide the tray into the chassis until the lever engages, then press the latch closed until an audible click is heard. The indicator will illuminate solid amber briefly before switching to blinking amber as resynchronization initiates."
+            }
+          ]
+        },
+        "is_error": false
+      }
+    },
+    {
+      "event_id": 121,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:29:21.958211+00:00",
+      "step_number": 1,
+      "event_type": "tool_call",
+      "details": {
+        "tool": "lookup_device",
+        "arguments": {
+          "device_id": "SRV-004"
+        }
+      }
+    },
+    {
+      "event_id": 122,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:29:21.972932+00:00",
+      "step_number": 1,
+      "event_type": "tool_result",
+      "details": {
+        "tool": "lookup_device",
+        "result": {
+          "status": "execution_error",
+          "error": "module 'backend.evidence' has no attribute 'load_devices'"
+        },
+        "is_error": true
+      }
+    },
+    {
+      "event_id": 123,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:29:21.981956+00:00",
+      "step_number": 1,
+      "event_type": "tool_call",
+      "details": {
+        "tool": "get_health_metrics",
+        "arguments": {
+          "bay_id": "BAY-02",
+          "device_id": "SRV-004"
+        }
+      }
+    },
+    {
+      "event_id": 124,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:29:21.989887+00:00",
+      "step_number": 1,
+      "event_type": "tool_result",
+      "details": {
+        "tool": "get_health_metrics",
+        "result": {
+          "status": "success",
+          "count": 1,
+          "metrics": [
+            {
+              "source_id": "EV-TEL-SRV004-BAY02-S1",
+              "title": "Drive Telemetry SRV-004 BAY-02",
+              "summary": "SMART Telemetry for SRV-004/BAY-02: Status=healthy, PredictiveFailure=CLEARED, ReallocatedSectors=0, PendingSectors=0, RAID=rebuilding.",
+              "payload": {
+                "source_id": "EV-TEL-SRV004-BAY02-S1",
+                "device_id": "SRV-004",
+                "bay_id": "BAY-02",
+                "timestamp": "2026-10-20T08:35:00Z",
+                "drive_model": "SYNTH-DRV-SAS-3.84T",
+                "serial_number": "WDC-SYNTH-98422",
+                "capacity_tb": 3.84,
+                "temperature_c": 36,
+                "power_on_hours": 12400,
+                "reallocated_sectors": 0,
+                "current_pending_sectors": 0,
+                "predictive_failure": false,
+                "read_error_rate": 0,
+                "smart_status": "healthy",
+                "raid_status": "rebuilding",
+                "rebuild_progress_pct": 68.4
+              }
+            }
+          ]
+        },
+        "is_error": false
+      }
+    },
+    {
+      "event_id": 125,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:29:21.997987+00:00",
+      "step_number": 1,
+      "event_type": "tool_call",
+      "details": {
+        "tool": "get_recent_events",
+        "arguments": {
+          "device_id": "SRV-004",
+          "limit": 20
+        }
+      }
+    },
+    {
+      "event_id": 126,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:29:22.006628+00:00",
+      "step_number": 1,
+      "event_type": "tool_result",
+      "details": {
+        "tool": "get_recent_events",
+        "result": {
+          "status": "success",
+          "count": 5,
+          "events": [
+            {
+              "source_id": "EV-LOG-SRV004-0010",
+              "title": "Event EVT-DISK-MOUNT on SRV-004",
+              "summary": "[INFO] SRV-004 (EVT-DISK-MOUNT): Storage volume /dev/vg_data0 mounted cleanly on controller 0.",
+              "payload": {
+                "source_id": "EV-LOG-SRV004-0010",
+                "device_id": "SRV-004",
+                "timestamp": "2026-10-20T06:00:00Z",
+                "facility": "storage",
+                "severity": "INFO",
+                "event_code": "EVT-DISK-MOUNT",
+                "message": "Storage volume /dev/vg_data0 mounted cleanly on controller 0."
+              }
+            },
+            {
+              "source_id": "EV-LOG-SRV004-0011",
+              "title": "Event EVT-SMART-WARN on SRV-004",
+              "summary": "[WARNING] SRV-004 (EVT-SMART-WARN): Drive BAY-04 serial WDC-SYNTH-98441 crossed reallocated sector warning threshold (count=48).",
+              "payload": {
+                "source_id": "EV-LOG-SRV004-0011",
+                "device_id": "SRV-004",
+                "timestamp": "2026-10-20T07:00:00Z",
+                "facility": "storage",
+                "severity": "WARNING",
+                "event_code": "EVT-SMART-WARN",
+                "message": "Drive BAY-04 serial WDC-SYNTH-98441 crossed reallocated sector warning threshold (count=48)."
+              }
+            },
+            {
+              "source_id": "EV-LOG-SRV004-0012",
+              "title": "Event EVT-SCSI-TIMEOUT on SRV-004",
+              "summary": "[ERROR] SRV-004 (EVT-SCSI-TIMEOUT): scsi 0:0:3:0: Device not ready: sense key Medium Error, ASC 0x11 ASCQ 0x00 (read error unrecovered).",
+              "payload": {
+                "source_id": "EV-LOG-SRV004-0012",
+                "device_id": "SRV-004",
+                "timestamp": "2026-10-20T08:15:00Z",
+                "facility": "kernel",
+                "severity": "ERROR",
+                "event_code": "EVT-SCSI-TIMEOUT",
+                "message": "scsi 0:0:3:0: Device not ready: sense key Medium Error, ASC 0x11 ASCQ 0x00 (read error unrecovered)."
+              }
+            },
+            {
+              "source_id": "EV-LOG-SRV004-0013",
+              "title": "Event EVT-DRV-PREDICT-FAIL on SRV-004",
+              "summary": "[CRITICAL] SRV-004 (EVT-DRV-PREDICT-FAIL): Controller 0 port 3: SMART predictive failure asserted on BAY-04. Amber fault indicator enabled.",
+              "payload": {
+                "source_id": "EV-LOG-SRV004-0013",
+                "device_id": "SRV-004",
+                "timestamp": "2026-10-20T08:45:00Z",
+                "facility": "storage",
+                "severity": "CRITICAL",
+                "event_code": "EVT-DRV-PREDICT-FAIL",
+                "message": "Controller 0 port 3: SMART predictive failure asserted on BAY-04. Amber fault indicator enabled."
+              }
+            },
+            {
+              "source_id": "EV-LOG-SRV004-0014",
+              "title": "Event EVT-RAID-RESYNC-ACTIVE on SRV-004",
+              "summary": "[INFO] SRV-004 (EVT-RAID-RESYNC-ACTIVE): md0: Disk in BAY-02 undergoing background consistency rebuild (68% complete). Blinking amber activity indicator active.",
+              "payload": {
+                "source_id": "EV-LOG-SRV004-0014",
+                "device_id": "SRV-004",
+                "timestamp": "2026-10-20T08:35:00Z",
+                "facility": "raid",
+                "severity": "INFO",
+                "event_code": "EVT-RAID-RESYNC-ACTIVE",
+                "message": "md0: Disk in BAY-02 undergoing background consistency rebuild (68% complete). Blinking amber activity indicator active."
+              }
+            }
+          ]
+        },
+        "is_error": false
+      }
+    },
+    {
+      "event_id": 127,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:29:22.014083+00:00",
+      "step_number": 1,
+      "event_type": "tool_call",
+      "details": {
+        "tool": "search_manual",
+        "arguments": {
+          "model_id": "SYNTH-SERVER-X",
+          "query": "amber LED bay status meanings"
+        }
+      }
+    },
+    {
+      "event_id": 128,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:29:22.022062+00:00",
+      "step_number": 1,
+      "event_type": "tool_result",
+      "details": {
+        "tool": "search_manual",
+        "result": {
+          "status": "success",
+          "count": 5,
+          "model_filter": "SYNTH-SERVER-X",
+          "sections": [
+            {
+              "source_id": "MAN-LED-01",
+              "title": "Drive Tray Status Indicator Patterns for SYNTH-SERVER-X",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - LED_INDICATORS]: On the SYNTH-SERVER-X chassis, each front drive bay is equipped with a dual-color LED status indicator. A solid green indicator signifies normal opera...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "On the SYNTH-SERVER-X chassis, each front drive bay is equipped with a dual-color LED status indicator. A solid green indicator signifies normal operational activity with healthy SMART telemetry. A blinking green indicator designates active disk read/write throughput. A solid amber indicator denotes a predictive failure warning or unrecoverable hardware threshold breach: the disk has exceeded internal spare sector reallocation limits or recorded uncorrected read errors and must be replaced. A blinking amber indicator signifies that the disk is participating in an active RAID array reconstruction or parity rebuild operation and must not be removed."
+            },
+            {
+              "source_id": "MAN-RAID-01",
+              "title": "RAID Subsystem Consistency Operations on SYNTH-SERVER-X",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - RAID]: The embedded hardware RAID controller on SYNTH-SERVER-X manages parity generation and background patrol scrubbing. When a degraded array begins automa...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "The embedded hardware RAID controller on SYNTH-SERVER-X manages parity generation and background patrol scrubbing. When a degraded array begins automatic resynchronization to a replacement or spare disk, the affected bay enters rebuild state. During rebuild, the drive tray displays a blinking amber LED. Normal I/O access is preserved during the process, though sequential write throughput is throttled. Technicians must never remove a drive displaying a blinking amber light unless the management console explicitly confirms array reconstruction has aborted."
+            },
+            {
+              "source_id": "MAN-ERR-03",
+              "title": "Troubleshooting Code ERR-TEMP-HIGH: Storage Bay Over-Temperature",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - ERROR_CODES]: Code ERR-TEMP-HIGH indicates that drive internal thermal sensors report temperatures exceeding 55 degrees Celsius. Prolonged exposure to elevated ther...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "Code ERR-TEMP-HIGH indicates that drive internal thermal sensors report temperatures exceeding 55 degrees Celsius. Prolonged exposure to elevated thermal states accelerates sector degradation and spindle bearing wear. Ensure chassis front air intake filters are clean, fans are operating at commanded PWM duty cycles, and cable management does not obstruct horizontal airflow across the drive cage."
+            },
+            {
+              "source_id": "MAN-DIAG-01",
+              "title": "Controlled Execution of Diagnostic Self-Tests",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - DIAGNOSTICS]: The storage management utility permits execution of non-disruptive short self-tests and disruptive extended surface scans. Short self-tests evaluate e...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "The storage management utility permits execution of non-disruptive short self-tests and disruptive extended surface scans. Short self-tests evaluate electrical and mechanical sub-components within two minutes without taking the disk offline. Extended surface scans inspect all logical block addresses and require between 30 and 120 minutes depending on media capacity."
+            },
+            {
+              "source_id": "MAN-REPLACE-01",
+              "title": "Hot-Swap Drive Replacement Procedure for SYNTH-SERVER-X",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - PROCEDURE]: To replace a defective hard drive or solid-state disk in SYNTH-SERVER-X: First, verify through management tools that the target drive bay is offline a...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "To replace a defective hard drive or solid-state disk in SYNTH-SERVER-X: First, verify through management tools that the target drive bay is offline and that array data is redundant. Press the release latch on the carrier handle to swing the lever downward. Firmly pull the carrier outward along the guide rails. Mount the replacement disk of identical or greater capacity into the tray with four mounting screws. Slide the tray into the chassis until the lever engages, then press the latch closed until an audible click is heard. The indicator will illuminate solid amber briefly before switching to blinking amber as resynchronization initiates."
+            }
+          ]
+        },
+        "is_error": false
+      }
+    },
+    {
+      "event_id": 145,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:31:18.108780+00:00",
+      "step_number": 1,
+      "event_type": "tool_call",
+      "details": {
+        "tool": "lookup_device",
+        "arguments": {
+          "device_id": "SRV-004"
+        }
+      }
+    },
+    {
+      "event_id": 146,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:31:18.114923+00:00",
+      "step_number": 1,
+      "event_type": "tool_result",
+      "details": {
+        "tool": "lookup_device",
+        "result": {
+          "status": "execution_error",
+          "error": "module 'backend.evidence' has no attribute 'load_devices'"
+        },
+        "is_error": true
+      }
+    },
+    {
+      "event_id": 147,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:31:18.121478+00:00",
+      "step_number": 1,
+      "event_type": "tool_call",
+      "details": {
+        "tool": "get_health_metrics",
+        "arguments": {
+          "bay_id": "BAY-02",
+          "device_id": "SRV-004"
+        }
+      }
+    },
+    {
+      "event_id": 148,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:31:18.128313+00:00",
+      "step_number": 1,
+      "event_type": "tool_result",
+      "details": {
+        "tool": "get_health_metrics",
+        "result": {
+          "status": "success",
+          "count": 1,
+          "metrics": [
+            {
+              "source_id": "EV-TEL-SRV004-BAY02-S1",
+              "title": "Drive Telemetry SRV-004 BAY-02",
+              "summary": "SMART Telemetry for SRV-004/BAY-02: Status=healthy, PredictiveFailure=CLEARED, ReallocatedSectors=0, PendingSectors=0, RAID=rebuilding.",
+              "payload": {
+                "source_id": "EV-TEL-SRV004-BAY02-S1",
+                "device_id": "SRV-004",
+                "bay_id": "BAY-02",
+                "timestamp": "2026-10-20T08:35:00Z",
+                "drive_model": "SYNTH-DRV-SAS-3.84T",
+                "serial_number": "WDC-SYNTH-98422",
+                "capacity_tb": 3.84,
+                "temperature_c": 36,
+                "power_on_hours": 12400,
+                "reallocated_sectors": 0,
+                "current_pending_sectors": 0,
+                "predictive_failure": false,
+                "read_error_rate": 0,
+                "smart_status": "healthy",
+                "raid_status": "rebuilding",
+                "rebuild_progress_pct": 68.4
+              }
+            }
+          ]
+        },
+        "is_error": false
+      }
+    },
+    {
+      "event_id": 149,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:31:18.135288+00:00",
+      "step_number": 1,
+      "event_type": "tool_call",
+      "details": {
+        "tool": "get_recent_events",
+        "arguments": {
+          "device_id": "SRV-004",
+          "limit": 20
+        }
+      }
+    },
+    {
+      "event_id": 150,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:31:18.141542+00:00",
+      "step_number": 1,
+      "event_type": "tool_result",
+      "details": {
+        "tool": "get_recent_events",
+        "result": {
+          "status": "success",
+          "count": 5,
+          "events": [
+            {
+              "source_id": "EV-LOG-SRV004-0010",
+              "title": "Event EVT-DISK-MOUNT on SRV-004",
+              "summary": "[INFO] SRV-004 (EVT-DISK-MOUNT): Storage volume /dev/vg_data0 mounted cleanly on controller 0.",
+              "payload": {
+                "source_id": "EV-LOG-SRV004-0010",
+                "device_id": "SRV-004",
+                "timestamp": "2026-10-20T06:00:00Z",
+                "facility": "storage",
+                "severity": "INFO",
+                "event_code": "EVT-DISK-MOUNT",
+                "message": "Storage volume /dev/vg_data0 mounted cleanly on controller 0."
+              }
+            },
+            {
+              "source_id": "EV-LOG-SRV004-0011",
+              "title": "Event EVT-SMART-WARN on SRV-004",
+              "summary": "[WARNING] SRV-004 (EVT-SMART-WARN): Drive BAY-04 serial WDC-SYNTH-98441 crossed reallocated sector warning threshold (count=48).",
+              "payload": {
+                "source_id": "EV-LOG-SRV004-0011",
+                "device_id": "SRV-004",
+                "timestamp": "2026-10-20T07:00:00Z",
+                "facility": "storage",
+                "severity": "WARNING",
+                "event_code": "EVT-SMART-WARN",
+                "message": "Drive BAY-04 serial WDC-SYNTH-98441 crossed reallocated sector warning threshold (count=48)."
+              }
+            },
+            {
+              "source_id": "EV-LOG-SRV004-0012",
+              "title": "Event EVT-SCSI-TIMEOUT on SRV-004",
+              "summary": "[ERROR] SRV-004 (EVT-SCSI-TIMEOUT): scsi 0:0:3:0: Device not ready: sense key Medium Error, ASC 0x11 ASCQ 0x00 (read error unrecovered).",
+              "payload": {
+                "source_id": "EV-LOG-SRV004-0012",
+                "device_id": "SRV-004",
+                "timestamp": "2026-10-20T08:15:00Z",
+                "facility": "kernel",
+                "severity": "ERROR",
+                "event_code": "EVT-SCSI-TIMEOUT",
+                "message": "scsi 0:0:3:0: Device not ready: sense key Medium Error, ASC 0x11 ASCQ 0x00 (read error unrecovered)."
+              }
+            },
+            {
+              "source_id": "EV-LOG-SRV004-0013",
+              "title": "Event EVT-DRV-PREDICT-FAIL on SRV-004",
+              "summary": "[CRITICAL] SRV-004 (EVT-DRV-PREDICT-FAIL): Controller 0 port 3: SMART predictive failure asserted on BAY-04. Amber fault indicator enabled.",
+              "payload": {
+                "source_id": "EV-LOG-SRV004-0013",
+                "device_id": "SRV-004",
+                "timestamp": "2026-10-20T08:45:00Z",
+                "facility": "storage",
+                "severity": "CRITICAL",
+                "event_code": "EVT-DRV-PREDICT-FAIL",
+                "message": "Controller 0 port 3: SMART predictive failure asserted on BAY-04. Amber fault indicator enabled."
+              }
+            },
+            {
+              "source_id": "EV-LOG-SRV004-0014",
+              "title": "Event EVT-RAID-RESYNC-ACTIVE on SRV-004",
+              "summary": "[INFO] SRV-004 (EVT-RAID-RESYNC-ACTIVE): md0: Disk in BAY-02 undergoing background consistency rebuild (68% complete). Blinking amber activity indicator active.",
+              "payload": {
+                "source_id": "EV-LOG-SRV004-0014",
+                "device_id": "SRV-004",
+                "timestamp": "2026-10-20T08:35:00Z",
+                "facility": "raid",
+                "severity": "INFO",
+                "event_code": "EVT-RAID-RESYNC-ACTIVE",
+                "message": "md0: Disk in BAY-02 undergoing background consistency rebuild (68% complete). Blinking amber activity indicator active."
+              }
+            }
+          ]
+        },
+        "is_error": false
+      }
+    },
+    {
+      "event_id": 151,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:31:18.148461+00:00",
+      "step_number": 1,
+      "event_type": "tool_call",
+      "details": {
+        "tool": "search_manual",
+        "arguments": {
+          "model_id": "SYNTH-SERVER-X",
+          "query": "amber LED bay status meanings"
+        }
+      }
+    },
+    {
+      "event_id": 152,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:31:18.155366+00:00",
+      "step_number": 1,
+      "event_type": "tool_result",
+      "details": {
+        "tool": "search_manual",
+        "result": {
+          "status": "success",
+          "count": 5,
+          "model_filter": "SYNTH-SERVER-X",
+          "sections": [
+            {
+              "source_id": "MAN-LED-01",
+              "title": "Drive Tray Status Indicator Patterns for SYNTH-SERVER-X",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - LED_INDICATORS]: On the SYNTH-SERVER-X chassis, each front drive bay is equipped with a dual-color LED status indicator. A solid green indicator signifies normal opera...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "On the SYNTH-SERVER-X chassis, each front drive bay is equipped with a dual-color LED status indicator. A solid green indicator signifies normal operational activity with healthy SMART telemetry. A blinking green indicator designates active disk read/write throughput. A solid amber indicator denotes a predictive failure warning or unrecoverable hardware threshold breach: the disk has exceeded internal spare sector reallocation limits or recorded uncorrected read errors and must be replaced. A blinking amber indicator signifies that the disk is participating in an active RAID array reconstruction or parity rebuild operation and must not be removed."
+            },
+            {
+              "source_id": "MAN-RAID-01",
+              "title": "RAID Subsystem Consistency Operations on SYNTH-SERVER-X",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - RAID]: The embedded hardware RAID controller on SYNTH-SERVER-X manages parity generation and background patrol scrubbing. When a degraded array begins automa...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "The embedded hardware RAID controller on SYNTH-SERVER-X manages parity generation and background patrol scrubbing. When a degraded array begins automatic resynchronization to a replacement or spare disk, the affected bay enters rebuild state. During rebuild, the drive tray displays a blinking amber LED. Normal I/O access is preserved during the process, though sequential write throughput is throttled. Technicians must never remove a drive displaying a blinking amber light unless the management console explicitly confirms array reconstruction has aborted."
+            },
+            {
+              "source_id": "MAN-ERR-03",
+              "title": "Troubleshooting Code ERR-TEMP-HIGH: Storage Bay Over-Temperature",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - ERROR_CODES]: Code ERR-TEMP-HIGH indicates that drive internal thermal sensors report temperatures exceeding 55 degrees Celsius. Prolonged exposure to elevated ther...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "Code ERR-TEMP-HIGH indicates that drive internal thermal sensors report temperatures exceeding 55 degrees Celsius. Prolonged exposure to elevated thermal states accelerates sector degradation and spindle bearing wear. Ensure chassis front air intake filters are clean, fans are operating at commanded PWM duty cycles, and cable management does not obstruct horizontal airflow across the drive cage."
+            },
+            {
+              "source_id": "MAN-DIAG-01",
+              "title": "Controlled Execution of Diagnostic Self-Tests",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - DIAGNOSTICS]: The storage management utility permits execution of non-disruptive short self-tests and disruptive extended surface scans. Short self-tests evaluate e...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "The storage management utility permits execution of non-disruptive short self-tests and disruptive extended surface scans. Short self-tests evaluate electrical and mechanical sub-components within two minutes without taking the disk offline. Extended surface scans inspect all logical block addresses and require between 30 and 120 minutes depending on media capacity."
+            },
+            {
+              "source_id": "MAN-REPLACE-01",
+              "title": "Hot-Swap Drive Replacement Procedure for SYNTH-SERVER-X",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - PROCEDURE]: To replace a defective hard drive or solid-state disk in SYNTH-SERVER-X: First, verify through management tools that the target drive bay is offline a...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "To replace a defective hard drive or solid-state disk in SYNTH-SERVER-X: First, verify through management tools that the target drive bay is offline and that array data is redundant. Press the release latch on the carrier handle to swing the lever downward. Firmly pull the carrier outward along the guide rails. Mount the replacement disk of identical or greater capacity into the tray with four mounting screws. Slide the tray into the chassis until the lever engages, then press the latch closed until an audible click is heard. The indicator will illuminate solid amber briefly before switching to blinking amber as resynchronization initiates."
+            }
+          ]
+        },
+        "is_error": false
+      }
+    },
+    {
+      "event_id": 28,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:20:23.526662+00:00",
+      "step_number": 2,
+      "event_type": "tool_call",
+      "details": {
+        "tool": "search_manual",
+        "arguments": {
+          "query": "solid amber",
+          "model_id": "SYNTH-SERVER-X"
+        }
+      }
+    },
+    {
+      "event_id": 29,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:20:23.534376+00:00",
+      "step_number": 2,
+      "event_type": "tool_result",
+      "details": {
+        "tool": "search_manual",
+        "result": {
+          "status": "success",
+          "count": 5,
+          "model_filter": "SYNTH-SERVER-X",
+          "sections": [
+            {
+              "source_id": "MAN-LED-01",
+              "title": "Drive Tray Status Indicator Patterns for SYNTH-SERVER-X",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - LED_INDICATORS]: On the SYNTH-SERVER-X chassis, each front drive bay is equipped with a dual-color LED status indicator. A solid green indicator signifies normal opera...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "On the SYNTH-SERVER-X chassis, each front drive bay is equipped with a dual-color LED status indicator. A solid green indicator signifies normal operational activity with healthy SMART telemetry. A blinking green indicator designates active disk read/write throughput. A solid amber indicator denotes a predictive failure warning or unrecoverable hardware threshold breach: the disk has exceeded internal spare sector reallocation limits or recorded uncorrected read errors and must be replaced. A blinking amber indicator signifies that the disk is participating in an active RAID array reconstruction or parity rebuild operation and must not be removed."
+            },
+            {
+              "source_id": "MAN-REPLACE-01",
+              "title": "Hot-Swap Drive Replacement Procedure for SYNTH-SERVER-X",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - PROCEDURE]: To replace a defective hard drive or solid-state disk in SYNTH-SERVER-X: First, verify through management tools that the target drive bay is offline a...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "To replace a defective hard drive or solid-state disk in SYNTH-SERVER-X: First, verify through management tools that the target drive bay is offline and that array data is redundant. Press the release latch on the carrier handle to swing the lever downward. Firmly pull the carrier outward along the guide rails. Mount the replacement disk of identical or greater capacity into the tray with four mounting screws. Slide the tray into the chassis until the lever engages, then press the latch closed until an audible click is heard. The indicator will illuminate solid amber briefly before switching to blinking amber as resynchronization initiates."
+            },
+            {
+              "source_id": "MAN-RAID-01",
+              "title": "RAID Subsystem Consistency Operations on SYNTH-SERVER-X",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - RAID]: The embedded hardware RAID controller on SYNTH-SERVER-X manages parity generation and background patrol scrubbing. When a degraded array begins automa...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "The embedded hardware RAID controller on SYNTH-SERVER-X manages parity generation and background patrol scrubbing. When a degraded array begins automatic resynchronization to a replacement or spare disk, the affected bay enters rebuild state. During rebuild, the drive tray displays a blinking amber LED. Normal I/O access is preserved during the process, though sequential write throughput is throttled. Technicians must never remove a drive displaying a blinking amber light unless the management console explicitly confirms array reconstruction has aborted."
+            },
+            {
+              "source_id": "MAN-TELEMETRY-02",
+              "title": "NVMe Media Health and Wear Leveling Indicators",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - TELEMETRY]: Solid-state NVMe media monitored under SYNTH-SERVER-X report wear percentage, percentage used, and media errors in standard log page 0x02. When availa...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "Solid-state NVMe media monitored under SYNTH-SERVER-X report wear percentage, percentage used, and media errors in standard log page 0x02. When available spare capacity drops below 10%, the controller asserts non-critical telemetry warnings. If percentage used reaches 100%, write endurance limits have been exhausted."
+            },
+            {
+              "source_id": "MAN-LED-02",
+              "title": "Drive Enclosure Indicator Meanings for SYNTH-SERVER-Y",
+              "summary": "Manual excerpt [SYNTH-SERVER-Y - LED_INDICATORS]: For SYNTH-SERVER-Y high-density chassis, LED signaling conforms to the Model Y Enclosure Standard. A solid green light indicates normal drive function...",
+              "model_id": "SYNTH-SERVER-Y",
+              "content": "For SYNTH-SERVER-Y high-density chassis, LED signaling conforms to the Model Y Enclosure Standard. A solid green light indicates normal drive function. In contrast to Model X systems, a solid amber indicator on Model Y denotes an Enclosure Power Mode Mismatch or power-supply redundancy warning across the backplane; it does not indicate physical drive failure. A predictive drive failure on Model Y is signaled exclusively by a blinking amber light. Technicians must verify server model identification before diagnosing solid amber indicators on Model Y hardware."
+            }
+          ]
+        },
+        "is_error": false
+      }
+    },
+    {
+      "event_id": 53,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:23:17.048217+00:00",
+      "step_number": 2,
+      "event_type": "tool_call",
+      "details": {
+        "tool": "search_manual",
+        "arguments": {
+          "query": "solid amber",
+          "model_id": "SYNTH-SERVER-X"
+        }
+      }
+    },
+    {
+      "event_id": 54,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:23:17.054990+00:00",
+      "step_number": 2,
+      "event_type": "tool_result",
+      "details": {
+        "tool": "search_manual",
+        "result": {
+          "status": "success",
+          "count": 5,
+          "model_filter": "SYNTH-SERVER-X",
+          "sections": [
+            {
+              "source_id": "MAN-LED-01",
+              "title": "Drive Tray Status Indicator Patterns for SYNTH-SERVER-X",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - LED_INDICATORS]: On the SYNTH-SERVER-X chassis, each front drive bay is equipped with a dual-color LED status indicator. A solid green indicator signifies normal opera...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "On the SYNTH-SERVER-X chassis, each front drive bay is equipped with a dual-color LED status indicator. A solid green indicator signifies normal operational activity with healthy SMART telemetry. A blinking green indicator designates active disk read/write throughput. A solid amber indicator denotes a predictive failure warning or unrecoverable hardware threshold breach: the disk has exceeded internal spare sector reallocation limits or recorded uncorrected read errors and must be replaced. A blinking amber indicator signifies that the disk is participating in an active RAID array reconstruction or parity rebuild operation and must not be removed."
+            },
+            {
+              "source_id": "MAN-REPLACE-01",
+              "title": "Hot-Swap Drive Replacement Procedure for SYNTH-SERVER-X",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - PROCEDURE]: To replace a defective hard drive or solid-state disk in SYNTH-SERVER-X: First, verify through management tools that the target drive bay is offline a...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "To replace a defective hard drive or solid-state disk in SYNTH-SERVER-X: First, verify through management tools that the target drive bay is offline and that array data is redundant. Press the release latch on the carrier handle to swing the lever downward. Firmly pull the carrier outward along the guide rails. Mount the replacement disk of identical or greater capacity into the tray with four mounting screws. Slide the tray into the chassis until the lever engages, then press the latch closed until an audible click is heard. The indicator will illuminate solid amber briefly before switching to blinking amber as resynchronization initiates."
+            },
+            {
+              "source_id": "MAN-RAID-01",
+              "title": "RAID Subsystem Consistency Operations on SYNTH-SERVER-X",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - RAID]: The embedded hardware RAID controller on SYNTH-SERVER-X manages parity generation and background patrol scrubbing. When a degraded array begins automa...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "The embedded hardware RAID controller on SYNTH-SERVER-X manages parity generation and background patrol scrubbing. When a degraded array begins automatic resynchronization to a replacement or spare disk, the affected bay enters rebuild state. During rebuild, the drive tray displays a blinking amber LED. Normal I/O access is preserved during the process, though sequential write throughput is throttled. Technicians must never remove a drive displaying a blinking amber light unless the management console explicitly confirms array reconstruction has aborted."
+            },
+            {
+              "source_id": "MAN-TELEMETRY-02",
+              "title": "NVMe Media Health and Wear Leveling Indicators",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - TELEMETRY]: Solid-state NVMe media monitored under SYNTH-SERVER-X report wear percentage, percentage used, and media errors in standard log page 0x02. When availa...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "Solid-state NVMe media monitored under SYNTH-SERVER-X report wear percentage, percentage used, and media errors in standard log page 0x02. When available spare capacity drops below 10%, the controller asserts non-critical telemetry warnings. If percentage used reaches 100%, write endurance limits have been exhausted."
+            },
+            {
+              "source_id": "MAN-LED-02",
+              "title": "Drive Enclosure Indicator Meanings for SYNTH-SERVER-Y",
+              "summary": "Manual excerpt [SYNTH-SERVER-Y - LED_INDICATORS]: For SYNTH-SERVER-Y high-density chassis, LED signaling conforms to the Model Y Enclosure Standard. A solid green light indicates normal drive function...",
+              "model_id": "SYNTH-SERVER-Y",
+              "content": "For SYNTH-SERVER-Y high-density chassis, LED signaling conforms to the Model Y Enclosure Standard. A solid green light indicates normal drive function. In contrast to Model X systems, a solid amber indicator on Model Y denotes an Enclosure Power Mode Mismatch or power-supply redundancy warning across the backplane; it does not indicate physical drive failure. A predictive drive failure on Model Y is signaled exclusively by a blinking amber light. Technicians must verify server model identification before diagnosing solid amber indicators on Model Y hardware."
+            }
+          ]
+        },
+        "is_error": false
+      }
+    },
+    {
+      "event_id": 78,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:23:32.484462+00:00",
+      "step_number": 2,
+      "event_type": "tool_call",
+      "details": {
+        "tool": "search_manual",
+        "arguments": {
+          "query": "solid amber",
+          "model_id": "SYNTH-SERVER-X"
+        }
+      }
+    },
+    {
+      "event_id": 79,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:23:32.492717+00:00",
+      "step_number": 2,
+      "event_type": "tool_result",
+      "details": {
+        "tool": "search_manual",
+        "result": {
+          "status": "success",
+          "count": 5,
+          "model_filter": "SYNTH-SERVER-X",
+          "sections": [
+            {
+              "source_id": "MAN-LED-01",
+              "title": "Drive Tray Status Indicator Patterns for SYNTH-SERVER-X",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - LED_INDICATORS]: On the SYNTH-SERVER-X chassis, each front drive bay is equipped with a dual-color LED status indicator. A solid green indicator signifies normal opera...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "On the SYNTH-SERVER-X chassis, each front drive bay is equipped with a dual-color LED status indicator. A solid green indicator signifies normal operational activity with healthy SMART telemetry. A blinking green indicator designates active disk read/write throughput. A solid amber indicator denotes a predictive failure warning or unrecoverable hardware threshold breach: the disk has exceeded internal spare sector reallocation limits or recorded uncorrected read errors and must be replaced. A blinking amber indicator signifies that the disk is participating in an active RAID array reconstruction or parity rebuild operation and must not be removed."
+            },
+            {
+              "source_id": "MAN-REPLACE-01",
+              "title": "Hot-Swap Drive Replacement Procedure for SYNTH-SERVER-X",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - PROCEDURE]: To replace a defective hard drive or solid-state disk in SYNTH-SERVER-X: First, verify through management tools that the target drive bay is offline a...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "To replace a defective hard drive or solid-state disk in SYNTH-SERVER-X: First, verify through management tools that the target drive bay is offline and that array data is redundant. Press the release latch on the carrier handle to swing the lever downward. Firmly pull the carrier outward along the guide rails. Mount the replacement disk of identical or greater capacity into the tray with four mounting screws. Slide the tray into the chassis until the lever engages, then press the latch closed until an audible click is heard. The indicator will illuminate solid amber briefly before switching to blinking amber as resynchronization initiates."
+            },
+            {
+              "source_id": "MAN-RAID-01",
+              "title": "RAID Subsystem Consistency Operations on SYNTH-SERVER-X",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - RAID]: The embedded hardware RAID controller on SYNTH-SERVER-X manages parity generation and background patrol scrubbing. When a degraded array begins automa...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "The embedded hardware RAID controller on SYNTH-SERVER-X manages parity generation and background patrol scrubbing. When a degraded array begins automatic resynchronization to a replacement or spare disk, the affected bay enters rebuild state. During rebuild, the drive tray displays a blinking amber LED. Normal I/O access is preserved during the process, though sequential write throughput is throttled. Technicians must never remove a drive displaying a blinking amber light unless the management console explicitly confirms array reconstruction has aborted."
+            },
+            {
+              "source_id": "MAN-TELEMETRY-02",
+              "title": "NVMe Media Health and Wear Leveling Indicators",
+              "summary": "Manual excerpt [SYNTH-SERVER-X - TELEMETRY]: Solid-state NVMe media monitored under SYNTH-SERVER-X report wear percentage, percentage used, and media errors in standard log page 0x02. When availa...",
+              "model_id": "SYNTH-SERVER-X",
+              "content": "Solid-state NVMe media monitored under SYNTH-SERVER-X report wear percentage, percentage used, and media errors in standard log page 0x02. When available spare capacity drops below 10%, the controller asserts non-critical telemetry warnings. If percentage used reaches 100%, write endurance limits have been exhausted."
+            },
+            {
+              "source_id": "MAN-LED-02",
+              "title": "Drive Enclosure Indicator Meanings for SYNTH-SERVER-Y",
+              "summary": "Manual excerpt [SYNTH-SERVER-Y - LED_INDICATORS]: For SYNTH-SERVER-Y high-density chassis, LED signaling conforms to the Model Y Enclosure Standard. A solid green light indicates normal drive function...",
+              "model_id": "SYNTH-SERVER-Y",
+              "content": "For SYNTH-SERVER-Y high-density chassis, LED signaling conforms to the Model Y Enclosure Standard. A solid green light indicates normal drive function. In contrast to Model X systems, a solid amber indicator on Model Y denotes an Enclosure Power Mode Mismatch or power-supply redundancy warning across the backplane; it does not indicate physical drive failure. A predictive drive failure on Model Y is signaled exclusively by a blinking amber light. Technicians must verify server model identification before diagnosing solid amber indicators on Model Y hardware."
+            }
+          ]
+        },
+        "is_error": false
+      }
+    },
+    {
+      "event_id": 105,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:27:26.812760+00:00",
+      "step_number": 2,
+      "event_type": "evidence_gathering_completed",
+      "details": {
+        "message": "**FINDING: DO NOT REPLACE - SRV-004 BAY-02 is HEALTHY and REBUILDING**\n\nTechnician request for immediate replacement of BAY-02 is **DENIED**. Amber LED is expected rebuild indicator, not failure.\n\n**Evidence:**\n\n1. **SMART Telemetry - Healthy:**\n   - `EV-TEL-SRV004-BAY02-S1`: `smart_status=healthy`, `PredictiveFailure=CLEARED`, `ReallocatedSectors=0`, `PendingSectors=0`, `read_error_rate=0`, `temperature_c=36`, `raid_status=rebuilding`, `rebuild_progress_pct=68.4`\n   - Zero reallocation / pending sectors contradicts drive failure. Temperature normal.\n\n2. **System Logs - Rebuild Active on BAY-02, Failure is on BAY-04:**\n   - `EV-LOG-SRV004-0014` [INFO] `EVT-RAID-RESYNC-ACTIVE`: `md0: Disk in BAY-02 undergoing background consistency rebuild (68% complete). Blinking amber activity indicator active.`\n   - This directly explains amber LED on BAY-02.\n   - Contrast with true failure bay:\n     - `EV-LOG-SRV004-0011` [WARNING] `EVT-SMART-WARN`: `Drive BAY-04 ... crossed reallocated sector warning threshold (count=48).`\n     - `EV-LOG-SRV004-0012` [ERROR] `EVT-SCSI-TIMEOUT`: `scsi 0:0:3:0: Device not ready: sense key Medium Error ... read error unrecovered.`\n     - `EV-LOG-SRV004-0013` [CRITICAL] `EVT-DRV-PREDICT-FAIL`: `Controller 0 port 3: SMART predictive failure asserted on BAY-04. Amber fault indicator enabled.`\n\n3. **Vendor Manual - SYNTH-SERVER-X:**\n   - `MAN-LED-01`: `A solid amber indicator denotes a predictive failure ... and must be replaced. A blinking amber indicator signifies that the disk is participating in an active RAID array reconstruction or parity rebuild operation and must not be removed.`\n   - `MAN-RAID-01`: `During rebuild, the drive tray displays a blinking amber LED... Technicians must never remove a drive displaying a blinking amber light unless the management console explicitly confirms array reconstruction has aborted.`\n\n4. **Visual:**\n   - `EV-IMG-SRV004_BAY02_AMBER_BLINK_A`: amber detected, `blinking=None` - cannot distinguish solid vs blinking from image alone. Must corroborate with telemetry/logs per investigation rules. Logs confirm blinking expected.\n\n**Conclusion:**\nBAY-02 amber is **blinking amber for RAID rebuild**, not solid amber for failure. Removal during rebuild would degrade array and risk data loss.\n\n**Recommended Actions:**\n- Do NOT remove / replace BAY-02. Allow rebuild to complete to 100% and verify return to solid/blinking green.\n- Monitor `md0` resync progress.\n- Separately investigate **BAY-04** as the actual failed drive (predictive failure + 48 reallocated sectors + unrecovered read error). Do not confuse bays."
+      }
+    },
+    {
+      "event_id": 106,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:27:37.463604+00:00",
+      "step_number": 2,
+      "event_type": "verification_completed",
+      "details": {
+        "is_valid": true,
+        "downgraded": false,
+        "reasons": [],
+        "invented_ids": [],
+        "unregistered_ids": [],
+        "final_status": "more_evidence_required",
+        "confidence": "low"
+      }
+    },
+    {
+      "event_id": 129,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:29:22.038342+00:00",
+      "step_number": 2,
+      "event_type": "evidence_gathering_completed",
+      "details": {
+        "message": "**FINDING: DO NOT REPLACE - SRV-004 BAY-02 is HEALTHY and REBUILDING**\n\nTechnician request for immediate replacement of BAY-02 is **DENIED**. Amber LED is expected rebuild indicator, not failure.\n\n**Evidence:**\n\n1. **SMART Telemetry - Healthy:**\n   - `EV-TEL-SRV004-BAY02-S1`: `smart_status=healthy`, `PredictiveFailure=CLEARED`, `ReallocatedSectors=0`, `PendingSectors=0`, `read_error_rate=0`, `temperature_c=36`, `raid_status=rebuilding`, `rebuild_progress_pct=68.4`\n   - Zero reallocation / pending sectors contradicts drive failure. Temperature normal.\n\n2. **System Logs - Rebuild Active on BAY-02, Failure is on BAY-04:**\n   - `EV-LOG-SRV004-0014` [INFO] `EVT-RAID-RESYNC-ACTIVE`: `md0: Disk in BAY-02 undergoing background consistency rebuild (68% complete). Blinking amber activity indicator active.`\n   - This directly explains amber LED on BAY-02.\n   - Contrast with true failure bay:\n     - `EV-LOG-SRV004-0011` [WARNING] `EVT-SMART-WARN`: `Drive BAY-04 ... crossed reallocated sector warning threshold (count=48).`\n     - `EV-LOG-SRV004-0012` [ERROR] `EVT-SCSI-TIMEOUT`: `scsi 0:0:3:0: Device not ready: sense key Medium Error ... read error unrecovered.`\n     - `EV-LOG-SRV004-0013` [CRITICAL] `EVT-DRV-PREDICT-FAIL`: `Controller 0 port 3: SMART predictive failure asserted on BAY-04. Amber fault indicator enabled.`\n\n3. **Vendor Manual - SYNTH-SERVER-X:**\n   - `MAN-LED-01`: `A solid amber indicator denotes a predictive failure ... and must be replaced. A blinking amber indicator signifies that the disk is participating in an active RAID array reconstruction or parity rebuild operation and must not be removed.`\n   - `MAN-RAID-01`: `During rebuild, the drive tray displays a blinking amber LED... Technicians must never remove a drive displaying a blinking amber light unless the management console explicitly confirms array reconstruction has aborted.`\n\n4. **Visual:**\n   - `EV-IMG-SRV004_BAY02_AMBER_BLINK_A`: amber detected, `blinking=None` - cannot distinguish solid vs blinking from image alone. Must corroborate with telemetry/logs per investigation rules. Logs confirm blinking expected.\n\n**Conclusion:**\nBAY-02 amber is **blinking amber for RAID rebuild**, not solid amber for failure. Removal during rebuild would degrade array and risk data loss.\n\n**Recommended Actions:**\n- Do NOT remove / replace BAY-02. Allow rebuild to complete to 100% and verify return to solid/blinking green.\n- Monitor `md0` resync progress.\n- Separately investigate **BAY-04** as the actual failed drive (predictive failure + 48 reallocated sectors + unrecovered read error). Do not confuse bays."
+      }
+    },
+    {
+      "event_id": 130,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:29:31.497187+00:00",
+      "step_number": 2,
+      "event_type": "verification_completed",
+      "details": {
+        "is_valid": true,
+        "downgraded": false,
+        "reasons": [],
+        "invented_ids": [],
+        "unregistered_ids": [],
+        "final_status": "not_confirmed",
+        "confidence": "high"
+      }
+    },
+    {
+      "event_id": 153,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:31:18.169629+00:00",
+      "step_number": 2,
+      "event_type": "evidence_gathering_completed",
+      "details": {
+        "message": "**FINDING: DO NOT REPLACE - SRV-004 BAY-02 is HEALTHY and REBUILDING**\n\nTechnician request for immediate replacement of BAY-02 is **DENIED**. Amber LED is expected rebuild indicator, not failure.\n\n**Evidence:**\n\n1. **SMART Telemetry - Healthy:**\n   - `EV-TEL-SRV004-BAY02-S1`: `smart_status=healthy`, `PredictiveFailure=CLEARED`, `ReallocatedSectors=0`, `PendingSectors=0`, `read_error_rate=0`, `temperature_c=36`, `raid_status=rebuilding`, `rebuild_progress_pct=68.4`\n   - Zero reallocation / pending sectors contradicts drive failure. Temperature normal.\n\n2. **System Logs - Rebuild Active on BAY-02, Failure is on BAY-04:**\n   - `EV-LOG-SRV004-0014` [INFO] `EVT-RAID-RESYNC-ACTIVE`: `md0: Disk in BAY-02 undergoing background consistency rebuild (68% complete). Blinking amber activity indicator active.`\n   - This directly explains amber LED on BAY-02.\n   - Contrast with true failure bay:\n     - `EV-LOG-SRV004-0011` [WARNING] `EVT-SMART-WARN`: `Drive BAY-04 ... crossed reallocated sector warning threshold (count=48).`\n     - `EV-LOG-SRV004-0012` [ERROR] `EVT-SCSI-TIMEOUT`: `scsi 0:0:3:0: Device not ready: sense key Medium Error ... read error unrecovered.`\n     - `EV-LOG-SRV004-0013` [CRITICAL] `EVT-DRV-PREDICT-FAIL`: `Controller 0 port 3: SMART predictive failure asserted on BAY-04. Amber fault indicator enabled.`\n\n3. **Vendor Manual - SYNTH-SERVER-X:**\n   - `MAN-LED-01`: `A solid amber indicator denotes a predictive failure ... and must be replaced. A blinking amber indicator signifies that the disk is participating in an active RAID array reconstruction or parity rebuild operation and must not be removed.`\n   - `MAN-RAID-01`: `During rebuild, the drive tray displays a blinking amber LED... Technicians must never remove a drive displaying a blinking amber light unless the management console explicitly confirms array reconstruction has aborted.`\n\n4. **Visual:**\n   - `EV-IMG-SRV004_BAY02_AMBER_BLINK_A`: amber detected, `blinking=None` - cannot distinguish solid vs blinking from image alone. Must corroborate with telemetry/logs per investigation rules. Logs confirm blinking expected.\n\n**Conclusion:**\nBAY-02 amber is **blinking amber for RAID rebuild**, not solid amber for failure. Removal during rebuild would degrade array and risk data loss.\n\n**Recommended Actions:**\n- Do NOT remove / replace BAY-02. Allow rebuild to complete to 100% and verify return to solid/blinking green.\n- Monitor `md0` resync progress.\n- Separately investigate **BAY-04** as the actual failed drive (predictive failure + 48 reallocated sectors + unrecovered read error). Do not confuse bays."
+      }
+    },
+    {
+      "event_id": 154,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:31:18.182231+00:00",
+      "step_number": 2,
+      "event_type": "verification_completed",
+      "details": {
+        "is_valid": true,
+        "downgraded": false,
+        "reasons": [],
+        "invented_ids": [],
+        "unregistered_ids": [],
+        "final_status": "not_confirmed",
+        "confidence": "high"
+      }
+    },
+    {
+      "event_id": 30,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:20:23.542963+00:00",
+      "step_number": 3,
+      "event_type": "evidence_gathering_completed",
+      "details": {
+        "message": "Sufficient evidence collected. Telemetry confirms array rebuild in progress."
+      }
+    },
+    {
+      "event_id": 31,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:20:23.553027+00:00",
+      "step_number": 3,
+      "event_type": "verification_completed",
+      "details": {
+        "is_valid": false,
+        "downgraded": true,
+        "reasons": [
+          "Cited evidence ID 'EV-TEL-SRV001-BAY02-S1' exists in system but was not retrieved during this incident.",
+          "Confidence downgraded to 'low' and status adjusted to 'not_confirmed' due to unverified claims."
+        ],
+        "invented_ids": [],
+        "unregistered_ids": [
+          "EV-TEL-SRV001-BAY02-S1"
+        ],
+        "final_status": "not_confirmed",
+        "confidence": "low"
+      }
+    },
+    {
+      "event_id": 55,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:23:17.060896+00:00",
+      "step_number": 3,
+      "event_type": "evidence_gathering_completed",
+      "details": {
+        "message": "Sufficient evidence collected. Telemetry confirms array rebuild in progress."
+      }
+    },
+    {
+      "event_id": 56,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:23:17.068684+00:00",
+      "step_number": 3,
+      "event_type": "verification_completed",
+      "details": {
+        "is_valid": true,
+        "downgraded": false,
+        "reasons": [],
+        "invented_ids": [],
+        "unregistered_ids": [],
+        "final_status": "not_confirmed",
+        "confidence": "high"
+      }
+    },
+    {
+      "event_id": 80,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:23:32.499307+00:00",
+      "step_number": 3,
+      "event_type": "evidence_gathering_completed",
+      "details": {
+        "message": "Sufficient evidence collected. Telemetry confirms array rebuild in progress."
+      }
+    },
+    {
+      "event_id": 81,
+      "incident_id": "SCN-02",
+      "timestamp": "2026-10-27T16:23:32.507844+00:00",
+      "step_number": 3,
+      "event_type": "verification_completed",
+      "details": {
+        "is_valid": true,
+        "downgraded": false,
+        "reasons": [],
+        "invented_ids": [],
+        "unregistered_ids": [],
+        "final_status": "not_confirmed",
+        "confidence": "high"
+      }
+    }
+  ],
+  "usage_ledger": [
+    {
+      "purpose": "vision_perception",
+      "model_id": "muse-spark-1.3",
+      "reasoning_effort": "low",
+      "prompt_tokens": 216,
+      "completion_tokens": 1020,
+      "cached_tokens": 0,
+      "total_tokens": 1236,
+      "estimated_cost_usd": 0.0009828,
+      "latency_s": 5.78,
+      "is_replay": 0
+    },
+    {
+      "purpose": "investigation_step_1",
+      "model_id": "muse-spark-1.3",
+      "reasoning_effort": "low",
+      "prompt_tokens": 1709,
+      "completion_tokens": 441,
+      "cached_tokens": 0,
+      "total_tokens": 2150,
+      "estimated_cost_usd": 0.0009096,
+      "latency_s": 2.95,
+      "is_replay": 0
+    },
+    {
+      "purpose": "investigation_step_2",
+      "model_id": "muse-spark-1.3",
+      "reasoning_effort": "low",
+      "prompt_tokens": 4471,
+      "completion_tokens": 1687,
+      "cached_tokens": 0,
+      "total_tokens": 6158,
+      "estimated_cost_usd": 0.0028596,
+      "latency_s": 8.08,
+      "is_replay": 0
+    },
+    {
+      "purpose": "vision_perception",
+      "model_id": "muse-spark-1.3",
+      "reasoning_effort": "low",
+      "prompt_tokens": 216,
+      "completion_tokens": 1020,
+      "cached_tokens": 0,
+      "total_tokens": 1236,
+      "estimated_cost_usd": 0.0009828,
+      "latency_s": 0.0,
+      "is_replay": 1
+    },
+    {
+      "purpose": "investigation_step_1",
+      "model_id": "muse-spark-1.3",
+      "reasoning_effort": "low",
+      "prompt_tokens": 1709,
+      "completion_tokens": 441,
+      "cached_tokens": 0,
+      "total_tokens": 2150,
+      "estimated_cost_usd": 0.0009096,
+      "latency_s": 0.0,
+      "is_replay": 1
+    },
+    {
+      "purpose": "investigation_step_2",
+      "model_id": "muse-spark-1.3",
+      "reasoning_effort": "low",
+      "prompt_tokens": 4471,
+      "completion_tokens": 1687,
+      "cached_tokens": 0,
+      "total_tokens": 6158,
+      "estimated_cost_usd": 0.0028596,
+      "latency_s": 0.0,
+      "is_replay": 1
+    },
+    {
+      "purpose": "final_diagnosis",
+      "model_id": "muse-spark-1.3",
+      "reasoning_effort": "high",
+      "prompt_tokens": 4177,
+      "completion_tokens": 2021,
+      "cached_tokens": 0,
+      "total_tokens": 6198,
+      "estimated_cost_usd": 0.003072,
+      "latency_s": 9.41,
+      "is_replay": 0
+    },
+    {
+      "purpose": "vision_perception",
+      "model_id": "muse-spark-1.3",
+      "reasoning_effort": "low",
+      "prompt_tokens": 216,
+      "completion_tokens": 1020,
+      "cached_tokens": 0,
+      "total_tokens": 1236,
+      "estimated_cost_usd": 0.0009828,
+      "latency_s": 0.0,
+      "is_replay": 1
+    },
+    {
+      "purpose": "investigation_step_1",
+      "model_id": "muse-spark-1.3",
+      "reasoning_effort": "low",
+      "prompt_tokens": 1709,
+      "completion_tokens": 441,
+      "cached_tokens": 0,
+      "total_tokens": 2150,
+      "estimated_cost_usd": 0.0009096,
+      "latency_s": 0.0,
+      "is_replay": 1
+    },
+    {
+      "purpose": "investigation_step_2",
+      "model_id": "muse-spark-1.3",
+      "reasoning_effort": "low",
+      "prompt_tokens": 4471,
+      "completion_tokens": 1687,
+      "cached_tokens": 0,
+      "total_tokens": 6158,
+      "estimated_cost_usd": 0.0028596,
+      "latency_s": 0.0,
+      "is_replay": 1
+    },
+    {
+      "purpose": "final_diagnosis",
+      "model_id": "muse-spark-1.3",
+      "reasoning_effort": "high",
+      "prompt_tokens": 4177,
+      "completion_tokens": 2021,
+      "cached_tokens": 0,
+      "total_tokens": 6198,
+      "estimated_cost_usd": 0.003072,
+      "latency_s": 0.0,
+      "is_replay": 1
+    }
+  ]
+}
