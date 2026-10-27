@@ -1,16 +1,10 @@
-# Core dependencies
-openai>=1.50.0
-fastapi>=0.115.0
-uvicorn>=0.30.0
-pydantic>=2.8.0
-python-dotenv>=1.0.0
-requests>=2.31.0
-
-# Multimodal & Visual Processing
-pillow>=10.0.0
-
-# UI
-streamlit>=1.37.0
-
-# Testing
-pytest>=8.0.0
+# Pinned dependencies for InfraSight (tested on Python 3.13)
+openai==3.27.0
+fastapi==0.136.0
+uvicorn==0.44.0
+pydantic==2.13.3
+python-dotenv==1.2.2
+requests==2.33.1
+pillow==12.3.0
+streamlit==1.60.0
+pytest==9.0.3

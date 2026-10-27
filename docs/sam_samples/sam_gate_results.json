@@ -1,0 +1,47 @@
+[
+  {
+    "image": "SRV004_BAY04_AMBER_SOLID.png",
+    "concepts": {
+      "LED": {
+        "box_count": 0,
+        "boxes": [],
+        "text_snippet": "EMPTY"
+      },
+      "drive tray": {
+        "box_count": 0,
+        "boxes": [],
+        "text_snippet": "EMPTY"
+      }
+    }
+  },
+  {
+    "image": "SRV001_BAY02_GREEN.png",
+    "concepts": {
+      "LED": {
+        "box_count": 0,
+        "boxes": [],
+        "text_snippet": "EMPTY"
+      },
+      "drive tray": {
+        "box_count": 0,
+        "boxes": [],
+        "text_snippet": "EMPTY"
+      }
+    }
+  },
+  {
+    "image": "SRV003_BAY01_RED.png",
+    "concepts": {
+      "LED": {
+        "box_count": 0,
+        "boxes": [],
+        "text_snippet": "EMPTY"
+      },
+      "drive tray": {
+        "box_count": 0,
+        "boxes": [],
+        "text_snippet": "EMPTY"
+      }
+    }
+  }
+]

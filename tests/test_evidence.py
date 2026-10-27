@@ -118,6 +118,19 @@ def test_get_telemetry_hero_confirmed():
     assert s2.raw_payload["reallocated_sectors"] == 164
 
 
+def test_get_telemetry_unlisted_bay():
+    # SRV-001 has 4 bays, but BAY-03 has no telemetry in the fixture
+    records = get_telemetry("SRV-001", "BAY-03")
+    assert len(records) == 1
+    rec = records[0]
+    assert rec.source_id == "EV-TEL-SRV001-BAY03-NODATA"
+    assert rec.raw_payload["status"] == "no_data"
+    assert rec.raw_payload["records_found"] == 0
+    # Must resolve via resolve_source_id without raising KeyError
+    resolved = resolve_source_id("EV-TEL-SRV001-BAY03-NODATA")
+    assert resolved["status"] == "no_data"
+
+
 def test_search_events_isolation():
     # Verify prompt injection line in events is retrieved safely as plain text
     results = search_events(device_id="SRV-002", severity="CRITICAL")

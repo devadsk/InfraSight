@@ -78,6 +78,12 @@ def resolve_source_id(source_id: str) -> Dict[str, Any]:
         for t in _TELEMETRY_CACHE:
             if t.get("source_id") == sid:
                 return t
+        if sid.endswith("-NODATA"):
+            # Explicit unmonitored/empty bay record
+            parts = sid.split("-")
+            d_id = f"{parts[2]}-{parts[3]}" if len(parts) >= 4 else "UNKNOWN"
+            b_id = f"{parts[4]}-{parts[5]}" if len(parts) >= 6 else "UNKNOWN"
+            return {"source_id": sid, "status": "no_data", "device_id": d_id, "bay_id": b_id, "predictive_failure": False}
         raise KeyError(f"Telemetry record not found for source ID: '{sid}'")
 
     # Event logs
@@ -216,6 +222,20 @@ def get_telemetry(device_id: str, bay_id: Optional[str] = None) -> List[Evidence
             timestamp=m.get("timestamp")
         )
         records.append(rec)
+
+    # If a specific bay was queried but has no telemetry in fixture
+    if bay and not matches:
+        dev_obj = next((d for d in _DEVICES_CACHE if d["device_id"] == dev_id), None)
+        if dev_obj and bay in dev_obj["bays"]:
+            no_data_id = f"EV-TEL-{dev_id.replace('-', '')}-{bay.replace('-', '')}-NODATA"
+            rec = EvidenceRecord(
+                source_id=no_data_id,
+                evidence_type=EvidenceType.TELEMETRY,
+                title=f"Drive Telemetry {dev_id} {bay} (No Data)",
+                summary=f"No telemetry data recorded for {dev_id} {bay} (bay unmonitored or empty).",
+                raw_payload={"status": "no_data", "device_id": dev_id, "bay_id": bay, "records_found": 0}
+            )
+            return [rec]
 
     return records
 
@@ -412,7 +432,7 @@ def analyze_led_pixels(
 
     # Convert cropped region to HSV
     hsv_region = region.convert("HSV")
-    hsv_pixels = list(hsv_region.getdata())
+    hsv_pixels = list(hsv_region.get_flattened_data())
 
     # Pixel metric accumulators
     valid_color_pixels = []
@@ -508,7 +528,7 @@ def analyze_led_pixels(
             reg_b = img_b.crop(box_used).convert("HSV")
         else:
             reg_b = img_b.crop(box_used).convert("HSV")
-        b_pixels = list(reg_b.getdata())
+        b_pixels = list(reg_b.get_flattened_data())
         avg_v_b = sum(p[2] / 255.0 for p in b_pixels) / max(1, len(b_pixels))
         # Significant delta in brightness between frames indicates blinking
         v_diff = abs(avg_v - avg_v_b)
