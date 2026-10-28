@@ -24,37 +24,40 @@ TRANSCRIPTS_DIR = Path("eval/transcripts")
 TRANSCRIPTS_DIR.mkdir(parents=True, exist_ok=True)
 
 
-def run_scenario(scenario_id: str, desc: str, image_path: str = None):
+def run_scenario(scenario_id: str, desc: str, image_paths: list = None):
+    image_paths = image_paths or []
     print(f"\n==================================================")
     print(f"  RUNNING LIVE INVESTIGATION: {scenario_id}")
     print(f"==================================================")
     print(f"Description: {desc}")
-    print(f"Image: {image_path}")
+    print(f"Image frames: {image_paths}")
 
     # Use live client with MOCK_MODE=False
     client = MetaClient(mock_mode=False)
     orchestrator = InvestigationOrchestrator(meta_client=client, max_steps=6)
 
+    from datetime import datetime, timezone
+    run_start_iso = datetime.now(timezone.utc).isoformat()
+
     t0 = time.time()
-    images = [image_path] if image_path else []
     diagnosis, verification, _ = orchestrator.investigate(
         incident_id=scenario_id,
         user_text=desc,
-        image_paths=images,
+        image_paths=image_paths,
     )
     elapsed = time.time() - t0
 
     # Retrieve audit trail from SQLite
     trail = get_incident_audit_trail(scenario_id)
 
-    # Retrieve usage ledger for this scenario
+    # Retrieve usage ledger for this scenario run
     conn = get_db_connection()
     cursor = conn.execute("""
         SELECT purpose, model_id, reasoning_effort, prompt_tokens, completion_tokens, cached_tokens, total_tokens, estimated_cost_usd, latency_s, is_replay
         FROM usage_ledger
-        WHERE incident_id = ?
+        WHERE incident_id = ? AND timestamp >= ?
         ORDER BY call_id ASC;
-    """, (scenario_id,))
+    """, (scenario_id, run_start_iso))
     usage_records = [dict(r) for r in cursor.fetchall()]
     conn.close()
 
@@ -65,7 +68,7 @@ def run_scenario(scenario_id: str, desc: str, image_path: str = None):
     transcript = {
         "scenario_id": scenario_id,
         "incident_description": desc,
-        "image_path": image_path,
+        "image_paths": image_paths,
         "elapsed_seconds": round(elapsed, 2),
         "total_steps": steps_count,
         "total_tokens": total_tokens,
@@ -102,13 +105,14 @@ def main():
     t1 = run_scenario(
         scenario_id="SCN-01",
         desc=s1["incident_description"],
-        image_path=s1.get("image_reference")
+        image_paths=[s1["image_reference"]] if s1.get("image_reference") else []
     )
 
+    s2_images = s2.get("image_frames") or ([s2["image_reference"]] if s2.get("image_reference") else [])
     t2 = run_scenario(
         scenario_id="SCN-02",
         desc=s2["incident_description"],
-        image_path=s2.get("image_reference")
+        image_paths=s2_images
     )
 
     print("\n==================================================")

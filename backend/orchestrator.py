@@ -82,6 +82,8 @@ class InvestigationOrchestrator:
         pixel_res = evidence.analyze_led_pixels(p1, frame_b_path=p2)
         img_source_id = f"EV-IMG-{Path(p1).stem}"
         dispatcher.register_id(img_source_id)
+        if p2:
+            dispatcher.register_id(f"EV-IMG-{Path(p2).stem}")
 
         pixel_obs = {
             "source_id": img_source_id,
@@ -378,6 +380,7 @@ class InvestigationOrchestrator:
             },
         }
 
+        raw_diag_content = ""
         try:
             diag_resp, _ = self.client.chat_completion(
                 messages=diagnosis_messages,
@@ -389,18 +392,56 @@ class InvestigationOrchestrator:
             )
             raw_diag_content = diag_resp["choices"][0]["message"]["content"]
             raw_diag_dict = json.loads(raw_diag_content)
-        except Exception as ex:
-            raw_diag_dict = {
-                "incident_id": incident_id,
-                "device_id": resolved_device or "UNKNOWN",
-                "component_id": resolved_bay,
-                "status": InvestigationStatus.MORE_EVIDENCE_REQUIRED.value,
-                "confidence": "low",
-                "summary": f"Structured diagnosis generation failed: {str(ex)}",
-                "reasoning": "Fallback invoked due to model API or schema parsing failure.",
-                "supporting_evidence_ids": list(dispatcher.registered_evidence_ids),
-                "contradictory_evidence_ids": [],
-            }
+            # Validate schema
+            Diagnosis(**raw_diag_dict)
+        except Exception as ex1:
+            # Exactly one repair retry
+            record_audit_event(
+                incident_id,
+                step_number=step,
+                event_type="structured_diagnosis_repair_attempt",
+                details={"error": str(ex1), "raw_content": raw_diag_content},
+            )
+            repair_prompt = (
+                f"Your previous structured output was invalid JSON or violated schema: {str(ex1)}.\n"
+                "Please correct the output and return strictly valid JSON matching the Diagnosis schema."
+            )
+            repair_messages = diagnosis_messages + [
+                {"role": "assistant", "content": raw_diag_content},
+                {"role": "user", "content": repair_prompt},
+            ]
+            try:
+                diag_retry_resp, _ = self.client.chat_completion(
+                    messages=repair_messages,
+                    response_format=response_format,
+                    temperature=0.0,
+                    purpose="final_diagnosis_repair_retry",
+                    incident_id=incident_id,
+                    reasoning_effort="high",
+                )
+                retry_content = diag_retry_resp["choices"][0]["message"]["content"]
+                raw_diag_dict = json.loads(retry_content)
+                Diagnosis(**raw_diag_dict)
+            except Exception as ex2:
+                # Fail safe to more_evidence_required
+                record_audit_event(
+                    incident_id,
+                    step_number=step,
+                    event_type="structured_diagnosis_repair_failed",
+                    details={"error": str(ex2)},
+                )
+                raw_diag_dict = {
+                    "incident_id": incident_id,
+                    "device_id": resolved_device or "UNKNOWN",
+                    "component_id": resolved_bay,
+                    "status": InvestigationStatus.MORE_EVIDENCE_REQUIRED.value,
+                    "confidence": "low",
+                    "summary": f"Structured diagnosis generation failed after repair retry: {str(ex2)}",
+                    "reasoning": "Fallback invoked due to invalid JSON/schema failure after 1 repair retry.",
+                    "decision_summary": ["Schema validation failed; repair attempt failed safe."],
+                    "supporting_evidence_ids": list(dispatcher.registered_evidence_ids),
+                    "contradictory_evidence_ids": [],
+                }
 
         # Ensure required identifiers are filled
         if "incident_id" not in raw_diag_dict or not raw_diag_dict["incident_id"]:

@@ -13,7 +13,7 @@ InfraSight is an **agentic incident investigator** designed to diagnose IT serve
 1. **Perceives Physical Status:** Correlates technician photographs and synthetic drive bay panels using multimodal vision (`muse-spark-1.3`), SAM perception (`sam-3.1`), and deterministic physical pixel hue analysis.
 2. **Queries Authoritative Infrastructure Records:** Gathers SMART telemetry, kernel logs, and vendor manuals through a deterministic backend engine.
 3. **Identifies Contradictions:** Refuses to equate a warning light with a broken component (e.g. recognizing an amber LED caused by an ongoing RAID rebuild rather than a failed disk).
-4. **Enforces Policy & Safety:** Restricts consequential remediations behind a Class A/B/C security policy with single-use cryptographic approval tokens, and resists prompt-injection attempts inside untrusted logs.
+4. **Enforces Policy & Safety:** Restricts consequential remediations behind a Class A/B/C security policy with server-side authorized approval records, and resists prompt-injection attempts inside untrusted logs.
 5. **Verifies Every Finding:** Enforces a deterministic verifier ensuring the AI only cites valid, backend-provided source IDs (`EV-TEL-...`, `EV-LOG-...`, `MAN-...`).
 
 ---
@@ -35,7 +35,14 @@ In strict compliance with the **New Work Only** rule of the Meta Global AI Devel
   - 10 programmatic Pillow drive bay renders (`data/images/`) with varying LED states and optical labels.
   - Deterministic Evidence Engine (`backend/evidence.py`): device resolution, stable ID verification (`resolve_source_id`), and physical HSV pixel hue analysis with red wrap-around and blinking detection.
   - Full unit test suite (`tests/test_evidence.py`, `tests/test_validation.py`) passing 20/20 tests including 100% hash reproducibility and referential integrity.
-- **Phase 3–7:** Planned vertical slice (orchestrator, policy engine, SQLite audit ledger, Streamlit frontend).
+- **Phase 3: Autonomous Investigation Loop & Deterministic Verifier**
+  - Meta Model API client (`backend/meta_client.py`) with exponential backoff retries, token usage accounting, and disk replay cache.
+  - Security policy engine (`backend/policy.py`) strictly enforcing Class A (automated read), Class B (held for approval), and Class C (permanently blocked arbitrary shell execution).
+  - Authoritative tool dispatcher (`backend/tools.py`) with strict Pydantic argument validation and model-filtered manual retrieval.
+  - Deterministic verifier (`backend/verifier.py`) enforcing non-model evidence corroboration, registered source ID constraints, and automated claim downgrading.
+  - Bounded multi-turn orchestrator (`backend/orchestrator.py`) with 1 repair retry on malformed structured output.
+  - SQLite audit store (`backend/storage.py`) capturing timeline events and token ledger.
+- **Phase 4–7:** Planned vertical slice (FastAPI service, simulated execution engine, Streamlit frontend).
 
 ---
 

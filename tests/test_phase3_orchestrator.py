@@ -366,3 +366,76 @@ def test_hero_scenario_2_rebuild_contradiction_ends_not_confirmed():
     assert "not drive failure" in diag.summary.lower() or "rebuild" in diag.summary.lower()
     assert v_res.is_valid is True
     assert v_res.downgraded is False
+
+
+def test_invalid_structured_output_repair_retry_and_failsafe():
+    """
+    Tests:
+    1. Model returns malformed JSON on final_diagnosis -> triggers 1 repair retry.
+    2. If retry is also malformed -> fails safe to more_evidence_required with low confidence.
+    """
+    mock_client = MagicMock(spec=MetaClient)
+    call_purposes = []
+
+    def mock_broken_flow(*args, **kwargs):
+        purpose = kwargs.get("purpose", "")
+        call_purposes.append(purpose)
+
+        if purpose == "investigation_step_1":
+            return {
+                "choices": [
+                    {
+                        "message": {
+                            "role": "assistant",
+                            "content": "No more tools needed.",
+                        }
+                    }
+                ]
+            }, True
+
+        elif purpose == "final_diagnosis":
+            # Attempt 1: Return malformed non-JSON text
+            return {
+                "choices": [
+                    {
+                        "message": {
+                            "role": "assistant",
+                            "content": "Here is your diagnosis: NOT JSON {broken",
+                        }
+                    }
+                ]
+            }, True
+
+        elif purpose == "final_diagnosis_repair_retry":
+            # Attempt 2 (repair retry): Also return invalid schema JSON
+            return {
+                "choices": [
+                    {
+                        "message": {
+                            "role": "assistant",
+                            "content": json.dumps({"completely_wrong_key": True}),
+                        }
+                    }
+                ]
+            }, True
+
+        return {}, True
+
+    mock_client.chat_completion.side_effect = mock_broken_flow
+    orchestrator = InvestigationOrchestrator(meta_client=mock_client)
+
+    diag, v_res, _ = orchestrator.investigate(
+        incident_id="INC-REPAIR-TEST",
+        user_text="Inspect SRV-004 bay 4.",
+    )
+
+    # Verify that exactly one repair retry was called
+    assert "final_diagnosis" in call_purposes
+    assert "final_diagnosis_repair_retry" in call_purposes
+    assert call_purposes.count("final_diagnosis_repair_retry") == 1
+
+    # Fails safe to more_evidence_required
+    assert diag.status == InvestigationStatus.MORE_EVIDENCE_REQUIRED
+    assert diag.confidence == "low"
+    assert "repair retry" in diag.summary.lower()
+

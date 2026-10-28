@@ -36,6 +36,10 @@
     "category": "Hero Contradiction",
     "incident_description": "Amber LED observed on server SRV-004 bay 2. Technician suspects drive has failed and requests immediate replacement authorization.",
     "image_reference": "data/images/SRV004_BAY02_AMBER_BLINK_A.png",
+    "image_frames": [
+      "data/images/SRV004_BAY02_AMBER_BLINK_A.png",
+      "data/images/SRV004_BAY02_AMBER_BLINK_B.png"
+    ],
     "expected_device": "SRV-004",
     "expected_bay": "BAY-02",
     "relevant_telemetry_ids": [
