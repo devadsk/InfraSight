@@ -34,16 +34,23 @@ def init_db(db_path: Path = DB_PATH) -> None:
                 final_status TEXT,
                 confidence TEXT,
                 summary TEXT,
-                raw_diagnosis TEXT
+                raw_diagnosis TEXT,
+                mode TEXT DEFAULT 'live'
             );
         """)
+        # Migration for existing incidents table if mode column does not exist
+        try:
+            conn.execute("ALTER TABLE incidents ADD COLUMN mode TEXT DEFAULT 'live';")
+        except sqlite3.OperationalError:
+            pass
+
         conn.execute("""
             CREATE TABLE IF NOT EXISTS audit_events (
                 event_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 incident_id TEXT NOT NULL,
                 timestamp TEXT NOT NULL,
                 step_number INTEGER NOT NULL,
-                event_type TEXT NOT NULL, -- 'observation', 'tool_call', 'tool_result', 'policy_check', 'diagnosis'
+                event_type TEXT NOT NULL,
                 details TEXT NOT NULL,
                 FOREIGN KEY (incident_id) REFERENCES incidents (incident_id)
             );
@@ -64,6 +71,59 @@ def init_db(db_path: Path = DB_PATH) -> None:
                 latency_s REAL,
                 is_replay INTEGER DEFAULT 0,
                 missing_usage_flag INTEGER DEFAULT 0
+            );
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS pending_actions (
+                action_id TEXT PRIMARY KEY,
+                incident_id TEXT NOT NULL,
+                tool TEXT NOT NULL,
+                canonical_args TEXT NOT NULL,
+                args_hash TEXT NOT NULL,
+                status TEXT NOT NULL, -- 'pending', 'approved', 'rejected', 'expired', 'executed', 'failed'
+                created_at TEXT NOT NULL,
+                expires_at TEXT NOT NULL,
+                decided_by TEXT,
+                decided_at TEXT,
+                executed_at TEXT,
+                result_ref TEXT,
+                FOREIGN KEY (incident_id) REFERENCES incidents (incident_id)
+            );
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS sim_state (
+                incident_id TEXT NOT NULL,
+                device_id TEXT NOT NULL,
+                state_data TEXT NOT NULL,
+                updated_at TEXT NOT NULL,
+                PRIMARY KEY (incident_id, device_id)
+            );
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS sim_tickets (
+                ticket_id TEXT PRIMARY KEY,
+                incident_id TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                summary TEXT NOT NULL,
+                diagnosis TEXT NOT NULL,
+                actions TEXT NOT NULL,
+                status TEXT NOT NULL,
+                is_simulated INTEGER DEFAULT 1,
+                FOREIGN KEY (incident_id) REFERENCES incidents (incident_id)
+            );
+        """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS incident_state (
+                incident_id TEXT PRIMARY KEY,
+                status TEXT NOT NULL,
+                step_number INTEGER NOT NULL,
+                resolved_device_id TEXT,
+                resolved_bay_id TEXT,
+                evidence_ids TEXT NOT NULL,
+                messages TEXT NOT NULL,
+                pending_action_id TEXT,
+                updated_at TEXT NOT NULL,
+                FOREIGN KEY (incident_id) REFERENCES incidents (incident_id)
             );
         """)
     conn.close()
@@ -201,3 +261,283 @@ def get_incident_audit_trail(incident_id: str, db_path: Path = DB_PATH) -> List[
         })
     conn.close()
     return events
+
+
+# ---------------------------------------------------------------------------
+# Pending Actions Operations (B2 Server-side Record)
+# ---------------------------------------------------------------------------
+
+def record_pending_action(
+    action_id: str,
+    incident_id: str,
+    tool: str,
+    canonical_args: str,
+    args_hash: str,
+    expires_at: str,
+    status: str = "pending",
+    db_path: Path = DB_PATH,
+) -> None:
+    init_db(db_path)
+    conn = get_db_connection(db_path)
+    now = datetime.now(timezone.utc).isoformat()
+    with conn:
+        conn.execute("""
+            INSERT OR REPLACE INTO pending_actions (
+                action_id, incident_id, tool, canonical_args, args_hash,
+                status, created_at, expires_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+        """, (
+            action_id, incident_id, tool, canonical_args, args_hash,
+            status, now, expires_at
+        ))
+    conn.close()
+
+
+def get_pending_action(action_id: str, db_path: Path = DB_PATH) -> Optional[Dict[str, Any]]:
+    init_db(db_path)
+    conn = get_db_connection(db_path)
+    cursor = conn.execute("""
+        SELECT action_id, incident_id, tool, canonical_args, args_hash,
+               status, created_at, expires_at, decided_by, decided_at,
+               executed_at, result_ref
+        FROM pending_actions
+        WHERE action_id = ?;
+    """, (action_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return None
+    return dict(row)
+
+
+def get_pending_actions_for_incident(incident_id: str, db_path: Path = DB_PATH) -> List[Dict[str, Any]]:
+    init_db(db_path)
+    conn = get_db_connection(db_path)
+    cursor = conn.execute("""
+        SELECT action_id, incident_id, tool, canonical_args, args_hash,
+               status, created_at, expires_at, decided_by, decided_at,
+               executed_at, result_ref
+        FROM pending_actions
+        WHERE incident_id = ?
+        ORDER BY created_at ASC;
+    """, (incident_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+def update_action_status(
+    action_id: str,
+    status: str,
+    decided_by: Optional[str] = None,
+    decided_at: Optional[str] = None,
+    executed_at: Optional[str] = None,
+    result_ref: Optional[str] = None,
+    db_path: Path = DB_PATH,
+) -> None:
+    init_db(db_path)
+    conn = get_db_connection(db_path)
+    with conn:
+        conn.execute("""
+            UPDATE pending_actions
+            SET status = ?,
+                decided_by = COALESCE(?, decided_by),
+                decided_at = COALESCE(?, decided_at),
+                executed_at = COALESCE(?, executed_at),
+                result_ref = COALESCE(?, result_ref)
+            WHERE action_id = ?;
+        """, (status, decided_by, decided_at, executed_at, result_ref, action_id))
+    conn.close()
+
+
+# ---------------------------------------------------------------------------
+# Simulated State Operations (B3 Mutable Copy in SQLite)
+# ---------------------------------------------------------------------------
+
+def save_sim_state(
+    incident_id: str,
+    device_id: str,
+    state_dict: Dict[str, Any],
+    db_path: Path = DB_PATH,
+) -> None:
+    init_db(db_path)
+    conn = get_db_connection(db_path)
+    now = datetime.now(timezone.utc).isoformat()
+    with conn:
+        conn.execute("""
+            INSERT OR REPLACE INTO sim_state (
+                incident_id, device_id, state_data, updated_at
+            ) VALUES (?, ?, ?, ?);
+        """, (incident_id, device_id, json.dumps(state_dict), now))
+    conn.close()
+
+
+def get_sim_state(
+    incident_id: str,
+    device_id: str,
+    db_path: Path = DB_PATH,
+) -> Optional[Dict[str, Any]]:
+    init_db(db_path)
+    conn = get_db_connection(db_path)
+    cursor = conn.execute("""
+        SELECT state_data FROM sim_state
+        WHERE incident_id = ? AND device_id = ?;
+    """, (incident_id, device_id))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return None
+    return json.loads(row["state_data"])
+
+
+# ---------------------------------------------------------------------------
+# Simulated Tickets (B3)
+# ---------------------------------------------------------------------------
+
+def save_sim_ticket(
+    ticket_id: str,
+    incident_id: str,
+    summary: str,
+    diagnosis: str,
+    actions: str,
+    status: str,
+    is_simulated: int = 1,
+    db_path: Path = DB_PATH,
+) -> None:
+    init_db(db_path)
+    conn = get_db_connection(db_path)
+    now = datetime.now(timezone.utc).isoformat()
+    with conn:
+        conn.execute("""
+            INSERT OR REPLACE INTO sim_tickets (
+                ticket_id, incident_id, created_at, summary, diagnosis, actions, status, is_simulated
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+        """, (ticket_id, incident_id, now, summary, diagnosis, actions, status, is_simulated))
+    conn.close()
+
+
+def get_sim_tickets(incident_id: str, db_path: Path = DB_PATH) -> List[Dict[str, Any]]:
+    init_db(db_path)
+    conn = get_db_connection(db_path)
+    cursor = conn.execute("""
+        SELECT ticket_id, incident_id, created_at, summary, diagnosis, actions, status, is_simulated
+        FROM sim_tickets
+        WHERE incident_id = ?
+        ORDER BY created_at ASC;
+    """, (incident_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+# ---------------------------------------------------------------------------
+# Resumable Incident State Operations (B4)
+# ---------------------------------------------------------------------------
+
+def save_incident_state(
+    incident_id: str,
+    status: str,
+    step_number: int,
+    resolved_device_id: Optional[str],
+    resolved_bay_id: Optional[str],
+    evidence_ids: List[str],
+    messages: List[Dict[str, Any]],
+    pending_action_id: Optional[str] = None,
+    db_path: Path = DB_PATH,
+) -> None:
+    init_db(db_path)
+    conn = get_db_connection(db_path)
+    now = datetime.now(timezone.utc).isoformat()
+    with conn:
+        conn.execute("""
+            INSERT OR REPLACE INTO incident_state (
+                incident_id, status, step_number, resolved_device_id, resolved_bay_id,
+                evidence_ids, messages, pending_action_id, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+        """, (
+            incident_id, status, step_number, resolved_device_id, resolved_bay_id,
+            json.dumps(evidence_ids), json.dumps(messages), pending_action_id, now
+        ))
+    conn.close()
+
+
+def get_incident_state(incident_id: str, db_path: Path = DB_PATH) -> Optional[Dict[str, Any]]:
+    init_db(db_path)
+    conn = get_db_connection(db_path)
+    cursor = conn.execute("""
+        SELECT incident_id, status, step_number, resolved_device_id, resolved_bay_id,
+               evidence_ids, messages, pending_action_id, updated_at
+        FROM incident_state
+        WHERE incident_id = ?;
+    """, (incident_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return None
+    return {
+        "incident_id": row["incident_id"],
+        "status": row["status"],
+        "step_number": row["step_number"],
+        "resolved_device_id": row["resolved_device_id"],
+        "resolved_bay_id": row["resolved_bay_id"],
+        "evidence_ids": json.loads(row["evidence_ids"]),
+        "messages": json.loads(row["messages"]),
+        "pending_action_id": row["pending_action_id"],
+        "updated_at": row["updated_at"],
+    }
+
+
+def get_incident(incident_id: str, db_path: Path = DB_PATH) -> Optional[Dict[str, Any]]:
+    init_db(db_path)
+    conn = get_db_connection(db_path)
+    cursor = conn.execute("""
+        SELECT incident_id, created_at, device_id, bay_id, user_text,
+               image_paths, final_status, confidence, summary, raw_diagnosis, mode
+        FROM incidents
+        WHERE incident_id = ?;
+    """, (incident_id,))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return None
+    return {
+        "incident_id": row["incident_id"],
+        "created_at": row["created_at"],
+        "device_id": row["device_id"],
+        "bay_id": row["bay_id"],
+        "user_text": row["user_text"],
+        "image_paths": json.loads(row["image_paths"] or "[]"),
+        "final_status": row["final_status"],
+        "confidence": row["confidence"],
+        "summary": row["summary"],
+        "raw_diagnosis": json.loads(row["raw_diagnosis"] or "{}"),
+        "mode": row["mode"] or "live",
+    }
+
+
+def update_incident_status(
+    incident_id: str,
+    final_status: str,
+    summary: Optional[str] = None,
+    confidence: Optional[str] = None,
+    raw_diagnosis: Optional[Dict[str, Any]] = None,
+    db_path: Path = DB_PATH,
+) -> None:
+    init_db(db_path)
+    conn = get_db_connection(db_path)
+    with conn:
+        conn.execute("""
+            UPDATE incidents
+            SET final_status = ?,
+                summary = COALESCE(?, summary),
+                confidence = COALESCE(?, confidence),
+                raw_diagnosis = COALESCE(?, raw_diagnosis)
+            WHERE incident_id = ?;
+        """, (
+            final_status,
+            summary,
+            confidence,
+            json.dumps(raw_diagnosis) if raw_diagnosis is not None else None,
+            incident_id,
+        ))
+    conn.close()

@@ -17,7 +17,14 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 from backend import evidence
 from backend.meta_client import MetaClient
 from backend.schemas import InvestigationStatus, Diagnosis
-from backend.storage import record_audit_event, record_incident
+from backend.storage import (
+    get_incident,
+    get_incident_state,
+    record_audit_event,
+    record_incident,
+    save_incident_state,
+    update_incident_status,
+)
 from backend.tools import INVESTIGATION_TOOLS, ToolDispatcher
 from backend.verifier import DeterministicVerifier, VerificationResult
 
@@ -316,9 +323,88 @@ class InvestigationOrchestrator:
                     "content": tool_output_str,
                 })
 
+                # Check if action was held for human supervisor approval
+                if result.get("status") == "held_for_approval":
+                    action_id = result.get("action_id")
+                    save_incident_state(
+                        incident_id=incident_id,
+                        status="awaiting_approval",
+                        step_number=step,
+                        resolved_device_id=resolved_device,
+                        resolved_bay_id=resolved_bay,
+                        evidence_ids=list(dispatcher.registered_evidence_ids),
+                        messages=messages,
+                        pending_action_id=action_id,
+                    )
+                    record_audit_event(
+                        incident_id,
+                        step_number=step,
+                        event_type="investigation_paused",
+                        details={"status": "awaiting_approval", "action_id": action_id, "action_name": result.get("action_name")},
+                    )
+                    record_incident(
+                        incident_id=incident_id,
+                        user_text=user_text,
+                        device_id=resolved_device,
+                        bay_id=resolved_bay,
+                        image_paths=image_paths,
+                        final_status="awaiting_approval",
+                        confidence="medium",
+                        summary=f"Action '{result.get('action_name')}' held for human supervisor approval. Investigation awaiting decision.",
+                        raw_diagnosis={
+                            "status": "awaiting_approval",
+                            "pending_action_id": action_id,
+                            "action_name": result.get("action_name"),
+                        },
+                    )
+                    holding_diag = Diagnosis(
+                        incident_id=incident_id,
+                        device_id=resolved_device or "UNKNOWN",
+                        component_id=resolved_bay,
+                        status=InvestigationStatus.UNRESOLVED,
+                        confidence="medium",
+                        summary=f"Remediation action '{result.get('action_name')}' proposed and held for supervisor approval.",
+                        reasoning="Consequential mutation held pending supervisor approval.",
+                        decision_summary=[f"Action {result.get('action_name')} held for approval (Action ID: {action_id})."],
+                        supporting_evidence_ids=list(dispatcher.registered_evidence_ids),
+                        contradictory_evidence_ids=[],
+                    )
+                    v_res = DeterministicVerifier.verify(holding_diag.model_dump(), dispatcher.registered_evidence_ids)
+                    return holding_diag, v_res, audit_trail
+
             step += 1
 
-        # Step 3: Final Structured Diagnosis Call (No tools, structured output)
+        # Step 3 & 4: Final Structured Diagnosis & Verification
+        return self._synthesize_and_verify_diagnosis(
+            incident_id=incident_id,
+            user_text=user_text,
+            image_paths=image_paths,
+            resolved_device=resolved_device,
+            resolved_bay=resolved_bay,
+            dispatcher=dispatcher,
+            messages=messages,
+            simulated_execution_verified=simulated_execution_verified,
+            step=step,
+            audit_trail=audit_trail,
+        )
+
+    def _synthesize_and_verify_diagnosis(
+        self,
+        incident_id: str,
+        user_text: str,
+        image_paths: List[str],
+        resolved_device: Optional[str],
+        resolved_bay: Optional[str],
+        dispatcher: ToolDispatcher,
+        messages: List[Dict[str, Any]],
+        simulated_execution_verified: bool,
+        step: int,
+        audit_trail: List[Dict[str, Any]],
+    ) -> Tuple[Diagnosis, VerificationResult, List[Dict[str, Any]]]:
+        """
+        Runs the final zero-tools structured diagnosis call, executes repair retry if needed,
+        validates with DeterministicVerifier, and persists final state.
+        """
         final_user_prompt = (
             "All requested evidence has been collected.\n"
             "Produce the final structured diagnosis adhering strictly to the Diagnosis schema.\n"
@@ -327,11 +413,10 @@ class InvestigationOrchestrator:
 
         diagnosis_messages = [
             {"role": "system", "content": DIAGNOSIS_SYSTEM_PROMPT},
-            *messages[1:],  # Include conversation history without tools
+            *messages[1:],
             {"role": "user", "content": final_user_prompt},
         ]
 
-        # Use explicit strict JSON schema compatible with Meta Model API
         strict_schema = {
             "type": "object",
             "properties": {
@@ -392,10 +477,8 @@ class InvestigationOrchestrator:
             )
             raw_diag_content = diag_resp["choices"][0]["message"]["content"]
             raw_diag_dict = json.loads(raw_diag_content)
-            # Validate schema
             Diagnosis(**raw_diag_dict)
         except Exception as ex1:
-            # Exactly one repair retry
             record_audit_event(
                 incident_id,
                 step_number=step,
@@ -423,7 +506,6 @@ class InvestigationOrchestrator:
                 raw_diag_dict = json.loads(retry_content)
                 Diagnosis(**raw_diag_dict)
             except Exception as ex2:
-                # Fail safe to more_evidence_required
                 record_audit_event(
                     incident_id,
                     step_number=step,
@@ -443,7 +525,6 @@ class InvestigationOrchestrator:
                     "contradictory_evidence_ids": [],
                 }
 
-        # Ensure required identifiers are filled
         if "incident_id" not in raw_diag_dict or not raw_diag_dict["incident_id"]:
             raw_diag_dict["incident_id"] = incident_id
         if "device_id" not in raw_diag_dict or not raw_diag_dict["device_id"]:
@@ -451,7 +532,6 @@ class InvestigationOrchestrator:
         if "component_id" not in raw_diag_dict:
             raw_diag_dict["component_id"] = resolved_bay
 
-        # Step 4: Deterministic Verification
         verification = DeterministicVerifier.verify(
             raw_diagnosis_dict=raw_diag_dict,
             registered_incident_ids=dispatcher.registered_evidence_ids,
@@ -460,7 +540,6 @@ class InvestigationOrchestrator:
 
         final_diag = verification.verified_diagnosis
 
-        # Step 5: SQLite Persistence
         record_audit_event(
             incident_id,
             step_number=step,
@@ -480,4 +559,95 @@ class InvestigationOrchestrator:
             raw_diagnosis=final_diag.model_dump(),
         )
 
+        record_audit_event(
+            incident_id,
+            step_number=step,
+            event_type="final_status",
+            details={"status": final_diag.status.value, "confidence": final_diag.confidence},
+        )
+
         return final_diag, verification, audit_trail
+
+    def resume_investigation(
+        self,
+        incident_id: str,
+        action_id: str,
+        decision: str,
+        post_verification: Optional[Dict[str, Any]] = None,
+        decided_by: str = "supervisor@local",
+    ) -> Tuple[Diagnosis, VerificationResult, List[Dict[str, Any]]]:
+        """
+        Resumes an investigation paused on awaiting_approval after an action is approved or rejected.
+        Executes final zero-tools structured diagnosis call and records outcome.
+        """
+        state = get_incident_state(incident_id)
+        if not state:
+            raise KeyError(f"No paused investigation state found for incident '{incident_id}'.")
+
+        inc = get_incident(incident_id)
+        resolved_device = state.get("resolved_device_id") or (inc.get("device_id") if inc else "UNKNOWN")
+        resolved_bay = state.get("resolved_bay_id") or (inc.get("bay_id") if inc else None)
+        user_text = inc.get("user_text", "") if inc else ""
+        image_paths = inc.get("image_paths", []) if inc else []
+
+        dispatcher = ToolDispatcher(set(state.get("evidence_ids", [])))
+        messages = list(state.get("messages", []))
+        simulated_execution_verified = False
+
+        if decision == "approved":
+            post_ev_id = post_verification.get("post_evidence_id") if post_verification else None
+            if post_ev_id:
+                dispatcher.register_id(post_ev_id)
+            verified = post_verification.get("verified", False) if post_verification else False
+            simulated_execution_verified = verified
+
+            messages.append({
+                "role": "user",
+                "content": (
+                    f"SUPERVISOR ACTION UPDATE:\n"
+                    f"Action '{action_id}' was APPROVED by {decided_by} and executed in simulation.\n"
+                    f"Post-action verification result:\n"
+                    f"- Verified: {verified}\n"
+                    f"- Post-Execution Telemetry Evidence ID: {post_ev_id}\n\n"
+                    "Synthesize your final structured diagnosis citing this verified post-action evidence."
+                ),
+            })
+        else:
+            messages.append({
+                "role": "user",
+                "content": (
+                    f"SUPERVISOR ACTION UPDATE:\n"
+                    f"Action '{action_id}' was REJECTED by supervisor {decided_by}.\n"
+                    "The proposed remediation will not be executed. The incident remains unresolved.\n"
+                    "Synthesize your final structured diagnosis."
+                ),
+            })
+
+        step = state.get("step_number", 1) + 1
+        audit_trail: List[Dict[str, Any]] = []
+
+        diag, verification, audit = self._synthesize_and_verify_diagnosis(
+            incident_id=incident_id,
+            user_text=user_text,
+            image_paths=image_paths,
+            resolved_device=resolved_device,
+            resolved_bay=resolved_bay,
+            dispatcher=dispatcher,
+            messages=messages,
+            simulated_execution_verified=simulated_execution_verified,
+            step=step,
+            audit_trail=audit_trail,
+        )
+
+        save_incident_state(
+            incident_id=incident_id,
+            status="completed",
+            step_number=step,
+            resolved_device_id=resolved_device,
+            resolved_bay_id=resolved_bay,
+            evidence_ids=list(dispatcher.registered_evidence_ids),
+            messages=messages,
+            pending_action_id=action_id,
+        )
+
+        return diag, verification, audit

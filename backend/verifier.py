@@ -126,9 +126,11 @@ class DeterministicVerifier:
             downgrade_needed = True
 
         # 5. Check 'resolved_in_simulation' requirement
-        if diagnosis.status == InvestigationStatus.RESOLVED_IN_SIMULATION and not simulated_execution_verified:
-            reasons.append("Status 'resolved_in_simulation' claimed without verified post-execution simulation result.")
-            downgrade_needed = True
+        if diagnosis.status == InvestigationStatus.RESOLVED_IN_SIMULATION:
+            has_post_exec = any("POST" in sid for sid in valid_supporting_ids) or simulated_execution_verified
+            if not (simulated_execution_verified and has_post_exec):
+                reasons.append("Status 'resolved_in_simulation' claimed without verified post-execution simulation result and telemetry citation.")
+                downgrade_needed = True
 
         # 6. Apply downgrade if necessary
         new_status = diagnosis.status

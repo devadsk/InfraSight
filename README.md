@@ -42,7 +42,14 @@ In strict compliance with the **New Work Only** rule of the Meta Global AI Devel
   - Deterministic verifier (`backend/verifier.py`) enforcing non-model evidence corroboration, registered source ID constraints, and automated claim downgrading.
   - Bounded multi-turn orchestrator (`backend/orchestrator.py`) with 1 repair retry on malformed structured output.
   - SQLite audit store (`backend/storage.py`) capturing timeline events and token ledger.
-- **Phase 4–7:** Planned vertical slice (FastAPI service, simulated execution engine, Streamlit frontend).
+- **Phase 4: Safety Boundaries, Server-Side Approvals, Simulated Execution Engine & Full Evaluation**
+  - Server-side approval record engine (`pending_actions` in SQLite) bound to argument hashes with 10-minute expiry, single-use enforcement, and re-verified authorization checks.
+  - Simulated execution engine (`backend/executor.py`) operating on isolated mutable SQLite copies (`sim_state`), preserving static fixtures unmodified.
+  - Post-execution verification reading telemetry back via the authoritative health metrics path before permitting `resolved_in_simulation`.
+  - Resumable investigations (`backend/orchestrator.py`) that pause on Class B proposals and resume cleanly after API supervisor decisions.
+  - FastAPI REST service (`backend/main.py`) exposing endpoints for incident lifecycle, background investigation, audit logs, and approval/rejection handling.
+  - Full evaluation runner (`scripts/run_eval.py`) evaluating all 13 benchmark scenarios against the real REST API flow, reporting k/13 headline metrics.
+- **Phase 5–7:** Planned UI and documentation (Streamlit interface, demo video script, final submission artifact).
 
 ---
 
@@ -52,8 +59,16 @@ In strict compliance with the **New Work Only** rule of the Meta Global AI Devel
 InfraSight/
 ├── backend/
 │   ├── __init__.py
-│   ├── schemas.py           # Strict Pydantic contracts for telemetry, logs, manuals, diagnosis
-│   └── evidence.py          # Deterministic evidence lookups & physical pixel analyzer
+│   ├── main.py              # FastAPI REST service (incidents, audit, approval workflow)
+│   ├── executor.py          # Simulated execution engine with post-action verification
+│   ├── orchestrator.py      # Multi-turn investigation loop with resumable investigations
+│   ├── policy.py            # Security policy engine (Class A, Class B, Class C)
+│   ├── tools.py             # Authoritative tool dispatcher & parameter validation
+│   ├── verifier.py          # Deterministic verifier & grounding constraint enforcer
+│   ├── storage.py           # SQLite persistence for audit trail, usage ledger, sim state
+│   ├── meta_client.py       # Meta Model API wrapper (Muse Spark & SAM 3.1)
+│   ├── evidence.py          # Deterministic evidence lookups & physical pixel analyzer
+│   └── schemas.py           # Strict Pydantic contracts for telemetry, logs, manuals, diagnosis
 ├── frontend/
 │   └── app.py               # Streamlit interactive investigator interface (Phase 5)
 ├── data/

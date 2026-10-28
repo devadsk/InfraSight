@@ -157,12 +157,42 @@ INVESTIGATION_TOOLS = [
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "action_name": {"type": "string", "description": "Action name: 'replace_physical_drive', 'restart_service', etc."},
+                    "action_name": {"type": "string", "description": "Action name: 'replace_physical_drive', 'replace_drive', 'restart_service', etc."},
                     "target_device": {"type": "string", "description": "Target server chassis ID"},
                     "target_component": {"type": "string", "description": "Target bay or component"},
                     "justification": {"type": "string", "description": "Evidence justification"}
                 },
                 "required": ["action_name", "target_device", "justification"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "replace_drive",
+            "description": "Request physical replacement of a faulty drive in a specific chassis bay (requires human supervisor approval).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "device_id": {"type": "string", "description": "Server chassis ID, e.g. 'SRV-004'"},
+                    "bay_id": {"type": "string", "description": "Drive bay identifier, e.g. 'BAY-04'"}
+                },
+                "required": ["device_id", "bay_id"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "restart_service",
+            "description": "Restart a hardware-adjacent storage or controller service on a server (requires human supervisor approval).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "device_id": {"type": "string", "description": "Server chassis ID"},
+                    "service": {"type": "string", "description": "Service name to restart"}
+                },
+                "required": ["device_id", "service"],
             },
         },
     },
@@ -198,9 +228,23 @@ class ToolDispatcher:
         policy_decision = PolicyEngine.check(tool, raw_args, incident_context)
         if not policy_decision.allowed:
             if policy_decision.requires_approval:
+                action_id = None
+                incident_id = incident_context.get("incident_id")
+                if incident_id:
+                    from backend.executor import SimulatedExecutionEngine
+                    step_num = incident_context.get("step_number", 1)
+                    pending_info = SimulatedExecutionEngine.create_pending_action(
+                        incident_id=incident_id,
+                        tool=tool,
+                        args=raw_args,
+                        step_number=step_num,
+                    )
+                    action_id = pending_info["action_id"]
+
                 # Class B action held for approval
                 return {
                     "status": "held_for_approval",
+                    "action_id": action_id,
                     "action_class": policy_decision.action_class.value,
                     "action_name": policy_decision.action_name,
                     "target_device": policy_decision.target_device,
@@ -304,13 +348,28 @@ class ToolDispatcher:
 
             elif tool == "create_ticket":
                 args = CreateTicketArgs(**raw_args)
-                ticket_id = f"TICK-{len(self.registered_evidence_ids) + 1000}"
+                incident_id = incident_context.get("incident_id")
+                if incident_id:
+                    from backend.executor import SimulatedExecutionEngine
+                    ticket_res = SimulatedExecutionEngine.create_simulated_ticket(
+                        incident_id=incident_id,
+                        title=args.title,
+                        severity=args.severity,
+                        summary=args.summary,
+                        diagnosis="Automated ticket from investigation session",
+                        actions="ticket_created",
+                        status="open",
+                    )
+                    return {"status": "created", **ticket_res}, False
+
+                ticket_id = f"SIM-TICK-{len(self.registered_evidence_ids) + 1000}"
                 return {
                     "status": "created",
                     "ticket_id": ticket_id,
                     "title": args.title,
                     "severity": args.severity,
-                    "summary": args.summary
+                    "summary": f"[SIMULATED IT SERVICE TICKET] {args.title}: {args.summary}",
+                    "is_simulated": True,
                 }, False
 
             else:

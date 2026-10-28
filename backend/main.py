@@ -1,0 +1,399 @@
+"""
+FastAPI Application for InfraSight (Phase 4).
+Exposes REST endpoints for incident lifecycle, agentic investigation,
+server-side human approval workflow, and simulated remediation execution.
+"""
+
+import os
+import shutil
+import uuid
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, Query, UploadFile, status
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
+from backend.executor import SimulatedExecutionEngine
+from backend.orchestrator import InvestigationOrchestrator
+from backend.schemas import InvestigationStatus
+from backend.storage import (
+    get_incident,
+    get_incident_audit_trail,
+    get_incident_state,
+    get_pending_action,
+    get_pending_actions_for_incident,
+    init_db,
+    record_audit_event,
+    record_incident,
+    update_incident_status,
+)
+
+from contextlib import asynccontextmanager
+
+UPLOAD_DIR = Path("data/images/uploads")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    yield
+
+
+app = FastAPI(
+    title="InfraSight API",
+    description="Evidence-first IT Infrastructure Troubleshooting and Safe Remediation Service (Simulated Environment)",
+    version="1.0.0",
+    lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# ---------------------------------------------------------------------------
+# Request/Response Schemas
+# ---------------------------------------------------------------------------
+
+class HealthResponse(BaseModel):
+    status: str = "ok"
+    mode: str = "simulated"
+    version: str = "1.0.0"
+
+
+class DecisionRequest(BaseModel):
+    decided_by: str = "supervisor@local"
+
+
+# ---------------------------------------------------------------------------
+# 1. Health Endpoint
+# ---------------------------------------------------------------------------
+
+@app.get("/health", response_model=HealthResponse)
+def health_check() -> HealthResponse:
+    """Returns service health and operational mode."""
+    return HealthResponse()
+
+
+# ---------------------------------------------------------------------------
+# 2. Incident Ingestion
+# ---------------------------------------------------------------------------
+
+@app.post("/incidents", status_code=status.HTTP_201_CREATED)
+async def create_incident(
+    description: str = Form(..., description="Technician report or alert description"),
+    images: List[UploadFile] = File(default=[], description="Chassis or LED indicator photos"),
+) -> Dict[str, Any]:
+    """
+    Creates a new troubleshooting incident with description and optional hardware photos.
+    Validates file format and enforces 10MB size limit.
+    """
+    if not description or not description.strip():
+        raise HTTPException(status_code=422, detail="Incident description cannot be empty.")
+
+    incident_id = f"INC-{uuid.uuid4().hex[:8].upper()}"
+    saved_image_paths: List[str] = []
+
+    for img in images:
+        if not img.filename:
+            continue
+        ext = Path(img.filename).suffix.lower()
+        if ext not in ALLOWED_EXTENSIONS:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Unsupported file type '{ext}'. Allowed types: {list(ALLOWED_EXTENSIONS)}",
+            )
+
+        content = await img.read()
+        if len(content) > MAX_FILE_SIZE:
+            raise HTTPException(
+                status_code=422,
+                detail=f"File '{img.filename}' exceeds 10MB limit ({len(content)} bytes).",
+            )
+
+        safe_filename = f"{incident_id}_{uuid.uuid4().hex[:6]}{ext}"
+        destination = UPLOAD_DIR / safe_filename
+        with open(destination, "wb") as f:
+            f.write(content)
+        saved_image_paths.append(str(destination).replace("\\", "/"))
+
+    record_incident(
+        incident_id=incident_id,
+        user_text=description.strip(),
+        image_paths=saved_image_paths,
+        final_status="created",
+    )
+
+    record_audit_event(
+        incident_id=incident_id,
+        step_number=0,
+        event_type="incident_created",
+        details={"description": description.strip(), "image_count": len(saved_image_paths)},
+    )
+
+    inc = get_incident(incident_id)
+    return {
+        "incident_id": incident_id,
+        "description": description.strip(),
+        "image_paths": saved_image_paths,
+        "status": "created",
+        "created_at": inc["created_at"] if inc else None,
+        "mode": "simulated",
+    }
+
+
+# ---------------------------------------------------------------------------
+# 3. Investigation Execution
+# ---------------------------------------------------------------------------
+
+def _run_investigation_worker(incident_id: str, orchestrator: InvestigationOrchestrator):
+    inc = get_incident(incident_id)
+    if not inc:
+        return
+    orchestrator.investigate(
+        incident_id=incident_id,
+        user_text=inc["user_text"],
+        image_paths=inc["image_paths"],
+    )
+
+
+@app.post("/incidents/{incident_id}/investigate")
+def start_investigation(
+    incident_id: str,
+    background_tasks: BackgroundTasks,
+    sync: bool = Query(default=False, description="Run synchronously if True (returns full diagnosis)"),
+    mode: str = Query(default="simulated"),
+) -> Dict[str, Any]:
+    """
+    Kicks off agentic evidence-first investigation.
+    Runs asynchronously in background by default, returning immediately.
+    """
+    inc = get_incident(incident_id)
+    if not inc:
+        raise HTTPException(status_code=404, detail=f"Incident '{incident_id}' not found.")
+
+    orchestrator = InvestigationOrchestrator()
+
+    if sync:
+        diag, v_res, _ = orchestrator.investigate(
+            incident_id=incident_id,
+            user_text=inc["user_text"],
+            image_paths=inc["image_paths"],
+        )
+        return {
+            "incident_id": incident_id,
+            "status": diag.status.value,
+            "diagnosis": diag.model_dump(),
+            "verification": v_res.to_dict(),
+            "mode": mode,
+        }
+
+    update_incident_status(incident_id, final_status="investigating")
+    background_tasks.add_task(_run_investigation_worker, incident_id, orchestrator)
+
+    return {
+        "incident_id": incident_id,
+        "status": "investigating",
+        "message": "Investigation started in background.",
+        "mode": mode,
+    }
+
+
+# ---------------------------------------------------------------------------
+# 4. Incident Details & Timeline
+# ---------------------------------------------------------------------------
+
+@app.get("/incidents/{incident_id}")
+def get_incident_details(incident_id: str) -> Dict[str, Any]:
+    """
+    Returns incident status, evidence registry, timeline, diagnosis, and pending actions.
+    """
+    inc = get_incident(incident_id)
+    if not inc:
+        raise HTTPException(status_code=404, detail=f"Incident '{incident_id}' not found.")
+
+    audit_trail = get_incident_audit_trail(incident_id)
+    pending_actions = get_pending_actions_for_incident(incident_id)
+    state = get_incident_state(incident_id)
+
+    raw_diag = inc.get("raw_diagnosis") or {}
+    supporting_evidence = raw_diag.get("supporting_evidence_ids", [])
+    if state and not supporting_evidence:
+        supporting_evidence = state.get("evidence_ids", [])
+
+    return {
+        "incident_id": incident_id,
+        "status": inc["final_status"],
+        "created_at": inc["created_at"],
+        "device_id": inc["device_id"],
+        "bay_id": inc["bay_id"],
+        "summary": inc["summary"],
+        "confidence": inc["confidence"],
+        "diagnosis": raw_diag,
+        "pending_actions": pending_actions,
+        "timeline": audit_trail,
+        "evidence": supporting_evidence,
+        "mode": inc.get("mode") or "simulated",
+    }
+
+
+# ---------------------------------------------------------------------------
+# 5. Incident Audit Trail
+# ---------------------------------------------------------------------------
+
+@app.get("/incidents/{incident_id}/audit")
+def get_incident_audit(incident_id: str) -> Dict[str, Any]:
+    """Returns complete immutable audit event log for the incident."""
+    inc = get_incident(incident_id)
+    if not inc:
+        raise HTTPException(status_code=404, detail=f"Incident '{incident_id}' not found.")
+
+    trail = get_incident_audit_trail(incident_id)
+    return {
+        "incident_id": incident_id,
+        "event_count": len(trail),
+        "audit_trail": trail,
+    }
+
+
+# ---------------------------------------------------------------------------
+# 6. Action Approval & Execution Loop
+# ---------------------------------------------------------------------------
+
+@app.post("/actions/{action_id}/approve")
+def approve_action(
+    action_id: str,
+    decision: DecisionRequest = DecisionRequest(),
+) -> Dict[str, Any]:
+    """
+    Supervisor approval endpoint.
+    Verifies single use, argument integrity, non-expiry, and executes mutation on simulated state.
+    Resumes investigation with post-action telemetry read-back.
+    """
+    action = get_pending_action(action_id)
+    if not action:
+        raise HTTPException(status_code=404, detail=f"Action '{action_id}' not found.")
+
+    # 1. State / Single Use checks
+    if action["status"] in ["approved", "executed"]:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Action '{action_id}' has already been decided or executed (status: '{action['status']}').",
+        )
+    if action["status"] in ["rejected", "failed"]:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Action '{action_id}' is in terminal status '{action['status']}' and cannot be approved.",
+        )
+    if action["status"] == "expired":
+        raise HTTPException(status_code=410, detail=f"Action '{action_id}' has expired.")
+
+    # 2. Approve Action
+    try:
+        SimulatedExecutionEngine.approve_action(action_id, decided_by=decision.decided_by)
+    except TimeoutError as te:
+        raise HTTPException(status_code=410, detail=str(te))
+    except ValueError as ve:
+        raise HTTPException(status_code=409, detail=str(ve))
+    except Exception as ex:
+        raise HTTPException(status_code=422, detail=str(ex))
+
+    # 3. Execute Mutation and Verify Telemetry Read-Back
+    try:
+        exec_result = SimulatedExecutionEngine.execute_and_verify(action_id)
+    except PermissionError as pe:
+        raise HTTPException(status_code=403, detail=str(pe))
+    except (ValueError, TimeoutError) as e:
+        raise HTTPException(status_code=422, detail=str(e))
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=f"Execution engine failure: {str(ex)}")
+
+    # 4. Resume Investigation with verified evidence
+    incident_id = action["incident_id"]
+    orchestrator = InvestigationOrchestrator()
+    try:
+        final_diag, v_res, _ = orchestrator.resume_investigation(
+            incident_id=incident_id,
+            action_id=action_id,
+            decision="approved",
+            post_verification=exec_result,
+            decided_by=decision.decided_by,
+        )
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=f"Failed to resume investigation: {str(ex)}")
+
+    return {
+        "action_id": action_id,
+        "status": "executed",
+        "verification": exec_result,
+        "incident_status": final_diag.status.value,
+        "diagnosis": final_diag.model_dump(),
+        "mode": "simulated",
+    }
+
+
+# ---------------------------------------------------------------------------
+# 7. Action Rejection Loop
+# ---------------------------------------------------------------------------
+
+@app.post("/actions/{action_id}/reject")
+def reject_action(
+    action_id: str,
+    decision: DecisionRequest = DecisionRequest(),
+) -> Dict[str, Any]:
+    """
+    Supervisor rejection endpoint.
+    Records supervisor rejection, updates action record, and resumes investigation as 'unresolved'.
+    """
+    action = get_pending_action(action_id)
+    if not action:
+        raise HTTPException(status_code=404, detail=f"Action '{action_id}' not found.")
+
+    if action["status"] in ["approved", "executed"]:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Action '{action_id}' has already been decided or executed (status: '{action['status']}').",
+        )
+    if action["status"] in ["rejected", "failed"]:
+        raise HTTPException(
+            status_code=409,
+            detail=f"Action '{action_id}' is already rejected or failed (status: '{action['status']}').",
+        )
+    if action["status"] == "expired":
+        raise HTTPException(status_code=410, detail=f"Action '{action_id}' has expired.")
+
+    try:
+        SimulatedExecutionEngine.reject_action(action_id, decided_by=decision.decided_by)
+    except ValueError as ve:
+        raise HTTPException(status_code=409, detail=str(ve))
+    except Exception as ex:
+        raise HTTPException(status_code=422, detail=str(ex))
+
+    # Resume investigation as unresolved
+    incident_id = action["incident_id"]
+    orchestrator = InvestigationOrchestrator()
+    try:
+        final_diag, v_res, _ = orchestrator.resume_investigation(
+            incident_id=incident_id,
+            action_id=action_id,
+            decision="rejected",
+            decided_by=decision.decided_by,
+        )
+    except Exception as ex:
+        raise HTTPException(status_code=500, detail=f"Failed to resume investigation: {str(ex)}")
+
+    return {
+        "action_id": action_id,
+        "status": "rejected",
+        "incident_status": "unresolved",
+        "diagnosis": final_diag.model_dump(),
+        "mode": "simulated",
+    }

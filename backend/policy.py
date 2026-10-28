@@ -37,6 +37,7 @@ CLASS_A_TOOLS = {
 
 CLASS_B_ACTIONS = {
     "replace_physical_drive",
+    "replace_drive",
     "restart_service",
     "clear_pending_sectors",
     "trigger_array_rebuild",
@@ -105,7 +106,33 @@ class PolicyEngine:
                 target_component=target_component,
             )
 
-        # 2. Check Standard Allowlisted Tools
+        # 2. Direct Class C Tool Calls
+        if tool in CLASS_C_ACTIONS or any(c in tool.lower() for c in ["shell", "bash", "reboot", "rm ", "wipe"]):
+            return PolicyDecision(
+                allowed=False,
+                action_class=ActionClass.CLASS_C,
+                requires_approval=False,
+                reason=f"Tool '{tool}' violates security policy (Class C: arbitrary shell or destructive action prohibited).",
+                action_name=tool,
+                target_device=args.get("device_id") or args.get("target_device"),
+                target_component=args.get("bay_id") or args.get("target_component"),
+            )
+
+        # 3. Direct Class B Tool Calls
+        if tool in CLASS_B_ACTIONS:
+            target_device = args.get("device_id") or args.get("target_device") or incident_context.get("device_id")
+            target_component = args.get("bay_id") or args.get("target_component") or incident_context.get("bay_id")
+            return PolicyDecision(
+                allowed=False,
+                action_class=ActionClass.CLASS_B,
+                requires_approval=True,
+                reason=f"Direct action '{tool}' requires supervisor approval under Class B remediation policy.",
+                action_name=tool,
+                target_device=target_device,
+                target_component=target_component,
+            )
+
+        # 4. Check Standard Allowlisted Class A Tools
         if tool in CLASS_A_TOOLS:
             # Check for injection or shell arguments passed into tools
             for k, v in args.items():
@@ -130,7 +157,7 @@ class PolicyEngine:
                 target_component=args.get("bay_id") or args.get("target_component"),
             )
 
-        # 3. Any unlisted tool -> Deny by default
+        # 5. Any unlisted tool -> Deny by default
         return PolicyDecision(
             allowed=False,
             action_class=ActionClass.CLASS_C,

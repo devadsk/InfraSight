@@ -45,6 +45,7 @@ htmlcov/
 .cache/
 eval/cache/
 *.db
+data/images/uploads/
 
 # OS
 Thumbs.db
