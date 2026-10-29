@@ -12,14 +12,15 @@ from typing import Any, Dict, List, Optional
 DB_PATH = Path("data/infrasight.db")
 
 
-def get_db_connection(db_path: Path = DB_PATH) -> sqlite3.Connection:
-    db_path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(db_path))
+def get_db_connection(db_path: Optional[Path] = None) -> sqlite3.Connection:
+    target = db_path if db_path is not None else DB_PATH
+    target.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(target))
     conn.row_factory = sqlite3.Row
     return conn
 
 
-def init_db(db_path: Path = DB_PATH) -> None:
+def init_db(db_path: Optional[Path] = None) -> None:
     """Initializes tables if they do not exist."""
     conn = get_db_connection(db_path)
     with conn:
@@ -139,7 +140,7 @@ def record_incident(
     confidence: Optional[str] = None,
     summary: Optional[str] = None,
     raw_diagnosis: Optional[Dict[str, Any]] = None,
-    db_path: Path = DB_PATH
+    db_path: Optional[Path] = None
 ) -> None:
     init_db(db_path)
     conn = get_db_connection(db_path)
@@ -169,7 +170,7 @@ def record_audit_event(
     step_number: int,
     event_type: str,
     details: Dict[str, Any],
-    db_path: Path = DB_PATH
+    db_path: Optional[Path] = None
 ) -> None:
     init_db(db_path)
     conn = get_db_connection(db_path)
@@ -197,7 +198,7 @@ def record_usage(
     reasoning_effort: Optional[str] = None,
     latency_s: float = 0.0,
     is_replay: bool = False,
-    db_path: Path = DB_PATH
+    db_path: Optional[Path] = None
 ) -> None:
     init_db(db_path)
     conn = get_db_connection(db_path)
@@ -239,7 +240,7 @@ def record_usage(
     conn.close()
 
 
-def get_incident_audit_trail(incident_id: str, db_path: Path = DB_PATH) -> List[Dict[str, Any]]:
+def get_incident_audit_trail(incident_id: str, db_path: Optional[Path] = None) -> List[Dict[str, Any]]:
     init_db(db_path)
     conn = get_db_connection(db_path)
     cursor = conn.execute("""
@@ -275,7 +276,7 @@ def record_pending_action(
     args_hash: str,
     expires_at: str,
     status: str = "pending",
-    db_path: Path = DB_PATH,
+    db_path: Optional[Path] = None,
 ) -> None:
     init_db(db_path)
     conn = get_db_connection(db_path)
@@ -293,7 +294,7 @@ def record_pending_action(
     conn.close()
 
 
-def get_pending_action(action_id: str, db_path: Path = DB_PATH) -> Optional[Dict[str, Any]]:
+def get_pending_action(action_id: str, db_path: Optional[Path] = None) -> Optional[Dict[str, Any]]:
     init_db(db_path)
     conn = get_db_connection(db_path)
     cursor = conn.execute("""
@@ -310,7 +311,7 @@ def get_pending_action(action_id: str, db_path: Path = DB_PATH) -> Optional[Dict
     return dict(row)
 
 
-def get_pending_actions_for_incident(incident_id: str, db_path: Path = DB_PATH) -> List[Dict[str, Any]]:
+def get_pending_actions_for_incident(incident_id: str, db_path: Optional[Path] = None) -> List[Dict[str, Any]]:
     init_db(db_path)
     conn = get_db_connection(db_path)
     cursor = conn.execute("""
@@ -333,7 +334,7 @@ def update_action_status(
     decided_at: Optional[str] = None,
     executed_at: Optional[str] = None,
     result_ref: Optional[str] = None,
-    db_path: Path = DB_PATH,
+    db_path: Optional[Path] = None,
 ) -> None:
     init_db(db_path)
     conn = get_db_connection(db_path)
@@ -358,7 +359,7 @@ def save_sim_state(
     incident_id: str,
     device_id: str,
     state_dict: Dict[str, Any],
-    db_path: Path = DB_PATH,
+    db_path: Optional[Path] = None,
 ) -> None:
     init_db(db_path)
     conn = get_db_connection(db_path)
@@ -375,7 +376,7 @@ def save_sim_state(
 def get_sim_state(
     incident_id: str,
     device_id: str,
-    db_path: Path = DB_PATH,
+    db_path: Optional[Path] = None,
 ) -> Optional[Dict[str, Any]]:
     init_db(db_path)
     conn = get_db_connection(db_path)
@@ -402,7 +403,7 @@ def save_sim_ticket(
     actions: str,
     status: str,
     is_simulated: int = 1,
-    db_path: Path = DB_PATH,
+    db_path: Optional[Path] = None,
 ) -> None:
     init_db(db_path)
     conn = get_db_connection(db_path)
@@ -416,7 +417,7 @@ def save_sim_ticket(
     conn.close()
 
 
-def get_sim_tickets(incident_id: str, db_path: Path = DB_PATH) -> List[Dict[str, Any]]:
+def get_sim_tickets(incident_id: str, db_path: Optional[Path] = None) -> List[Dict[str, Any]]:
     init_db(db_path)
     conn = get_db_connection(db_path)
     cursor = conn.execute("""
@@ -443,7 +444,7 @@ def save_incident_state(
     evidence_ids: List[str],
     messages: List[Dict[str, Any]],
     pending_action_id: Optional[str] = None,
-    db_path: Path = DB_PATH,
+    db_path: Optional[Path] = None,
 ) -> None:
     init_db(db_path)
     conn = get_db_connection(db_path)
@@ -461,7 +462,7 @@ def save_incident_state(
     conn.close()
 
 
-def get_incident_state(incident_id: str, db_path: Path = DB_PATH) -> Optional[Dict[str, Any]]:
+def get_incident_state(incident_id: str, db_path: Optional[Path] = None) -> Optional[Dict[str, Any]]:
     init_db(db_path)
     conn = get_db_connection(db_path)
     cursor = conn.execute("""
@@ -487,7 +488,7 @@ def get_incident_state(incident_id: str, db_path: Path = DB_PATH) -> Optional[Di
     }
 
 
-def get_incident(incident_id: str, db_path: Path = DB_PATH) -> Optional[Dict[str, Any]]:
+def get_incident(incident_id: str, db_path: Optional[Path] = None) -> Optional[Dict[str, Any]]:
     init_db(db_path)
     conn = get_db_connection(db_path)
     cursor = conn.execute("""
@@ -521,7 +522,7 @@ def update_incident_status(
     summary: Optional[str] = None,
     confidence: Optional[str] = None,
     raw_diagnosis: Optional[Dict[str, Any]] = None,
-    db_path: Path = DB_PATH,
+    db_path: Optional[Path] = None,
 ) -> None:
     init_db(db_path)
     conn = get_db_connection(db_path)

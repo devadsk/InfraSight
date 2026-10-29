@@ -119,5 +119,22 @@
     "read_error_rate": 1,
     "smart_status": "healthy",
     "raid_status": "optimal"
+  },
+  {
+    "source_id": "EV-TEL-SRV002-BAY01-S1",
+    "device_id": "SRV-002",
+    "bay_id": "BAY-01",
+    "timestamp": "2026-10-20T08:45:00Z",
+    "drive_model": "SYNTH-DRV-NVME-1.92T",
+    "serial_number": "SAMSUNG-SYNTH-2101",
+    "capacity_tb": 1.92,
+    "temperature_c": 37,
+    "power_on_hours": 9200,
+    "reallocated_sectors": 0,
+    "current_pending_sectors": 24,
+    "predictive_failure": false,
+    "read_error_rate": 62,
+    "smart_status": "warning",
+    "raid_status": "optimal"
   }
 ]

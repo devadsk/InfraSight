@@ -36,12 +36,8 @@ CLASS_A_TOOLS = {
 }
 
 CLASS_B_ACTIONS = {
-    "replace_physical_drive",
     "replace_drive",
     "restart_service",
-    "clear_pending_sectors",
-    "trigger_array_rebuild",
-    "power_cycle_server",
 }
 
 CLASS_C_ACTIONS = {

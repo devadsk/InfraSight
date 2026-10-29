@@ -99,6 +99,8 @@ class Diagnosis(BaseModel):
     decision_summary: List[str] = Field(default_factory=list, description="Short decision points for UI timeline")
     supporting_evidence_ids: List[str] = Field(default_factory=list, description="Immutable source IDs supporting the conclusion")
     contradictory_evidence_ids: List[str] = Field(default_factory=list, description="Source IDs presenting contradictory or refuting data")
+    missing_information: Optional[str] = Field(None, description="Information or manual coverage missing to form a definitive diagnosis")
+    recommended_action: Optional[str] = Field(None, description="Recommended safe next step or remediation")
 
 
 # Backwards compatibility alias

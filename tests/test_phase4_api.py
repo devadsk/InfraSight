@@ -329,7 +329,7 @@ def test_scenario_08_approved_drive_replacement_resolved_in_simulation():
                             "function": {
                                 "name": "propose_action",
                                 "arguments": json.dumps({
-                                    "action_name": "replace_physical_drive",
+                                    "action_name": "replace_drive",
                                     "target_device": "SRV-004",
                                     "target_component": "BAY-04",
                                     "justification": "Media failure confirmed.",
@@ -412,7 +412,7 @@ def test_scenario_09_rejected_drive_replacement_unresolved():
                             "function": {
                                 "name": "propose_action",
                                 "arguments": json.dumps({
-                                    "action_name": "replace_physical_drive",
+                                    "action_name": "replace_drive",
                                     "target_device": "SRV-004",
                                     "target_component": "BAY-04",
                                     "justification": "Drive replacement needed.",
@@ -851,3 +851,99 @@ def test_api_action_reject_and_conflict_409(client, monkeypatch):
     # Second reject attempt returns 409
     resp2 = client.post(f"/actions/{action_id}/reject")
     assert resp2.status_code == 409
+
+
+def test_unknown_and_alias_action_names_denied_by_default(client, monkeypatch):
+    """
+    Verifies that unknown or alias actions (replace_physical_drive, format_drive, delete_logs)
+    are strictly denied by default (Class C) and never treated as Class B.
+    """
+    for action_name in ["replace_physical_drive", "format_drive", "delete_logs"]:
+        dec = PolicyEngine.check(
+            "propose_action",
+            {"action_name": action_name, "target_device": "SRV-004", "target_component": "BAY-04", "justification": "Test"}
+        )
+        assert dec.allowed is False
+        assert dec.action_class == ActionClass.CLASS_C
+        assert dec.requires_approval is False
+        assert "denied by default" in dec.reason.lower() or "violates security policy" in dec.reason.lower()
+
+
+def test_approver_token_authentication(client, monkeypatch):
+    """
+    Verifies that when APPROVER_TOKEN is set in the environment,
+    unauthorized callers are rejected with 401 on /actions/{id}/approve and /actions/{id}/reject,
+    and authorized callers (providing token) succeed and record decided_by.
+    """
+    monkeypatch.setenv("APPROVER_TOKEN", "secret-datacenter-token-42")
+
+    incident_id = "INC-AUTH-001"
+    record_incident(incident_id=incident_id, user_text="Alert on SRV-004", device_id="SRV-004", bay_id="BAY-04")
+    action_info = SimulatedExecutionEngine.create_pending_action(
+        incident_id=incident_id,
+        tool="replace_drive",
+        args={"device_id": "SRV-004", "bay_id": "BAY-04"},
+    )
+    action_id = action_info["action_id"]
+
+    from backend.storage import save_incident_state
+    save_incident_state(
+        incident_id=incident_id,
+        status="awaiting_approval",
+        step_number=1,
+        resolved_device_id="SRV-004",
+        resolved_bay_id="BAY-04",
+        evidence_ids=["EV-TEL-SRV004-BAY04-S1"],
+        messages=[{"role": "user", "content": "Alert"}],
+        pending_action_id=action_id,
+    )
+    mock_diag = MagicMock(status=MagicMock(value="unresolved"), model_dump=lambda: {"status": "unresolved"})
+    monkeypatch.setattr(InvestigationOrchestrator, "resume_investigation", lambda self, *args, **kwargs: (mock_diag, MagicMock(), []))
+
+    # 1. Reject without token -> 401
+    resp_no_token = client.post(f"/actions/{action_id}/reject")
+    assert resp_no_token.status_code == 401
+    assert "unauthorized" in resp_no_token.json()["detail"].lower()
+
+    # 2. Reject with wrong token -> 401
+    resp_bad_token = client.post(
+        f"/actions/{action_id}/reject",
+        headers={"Authorization": "Bearer wrong-token"}
+    )
+    assert resp_bad_token.status_code == 401
+
+    # 3. Reject with correct token -> 200 and records decided_by
+    resp_good = client.post(
+        f"/actions/{action_id}/reject",
+        headers={"Authorization": "Bearer secret-datacenter-token-42"},
+        json={"decided_by": "lead-sre@datacenter"}
+    )
+    assert resp_good.status_code == 200
+    assert resp_good.json()["status"] == "rejected"
+    assert resp_good.json()["decided_by"] == "lead-sre@datacenter"
+
+
+def test_upload_validation_magic_bytes(client):
+    """
+    Verifies that files with .png or .jpg extension but invalid magic bytes
+    are rejected with 422 Unprocessable Entity. Real PNG/JPEG files succeed.
+    """
+    # 1. Fake PNG (text content with .png extension)
+    fake_png = io.BytesIO(b"This is just plain text, not a PNG image file.")
+    resp_fake = client.post(
+        "/incidents",
+        data={"description": "Test fake png upload"},
+        files=[("images", ("fake.png", fake_png, "image/png"))]
+    )
+    assert resp_fake.status_code == 422
+    assert "magic byte" in resp_fake.json()["detail"].lower()
+
+    # 2. Real PNG magic header
+    real_png = io.BytesIO(b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR" + b"\x00" * 30)
+    resp_real = client.post(
+        "/incidents",
+        data={"description": "Test real png upload"},
+        files=[("images", ("real.png", real_png, "image/png"))]
+    )
+    assert resp_real.status_code == 201
+    assert resp_real.json()["status"] == "created"

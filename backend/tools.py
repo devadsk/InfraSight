@@ -157,7 +157,11 @@ INVESTIGATION_TOOLS = [
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "action_name": {"type": "string", "description": "Action name: 'replace_physical_drive', 'replace_drive', 'restart_service', etc."},
+                    "action_name": {
+                        "type": "string",
+                        "enum": ["replace_drive", "restart_service"],
+                        "description": "Authorized action name: 'replace_drive' or 'restart_service'. Any other action name will be denied by policy."
+                    },
                     "target_device": {"type": "string", "description": "Target server chassis ID"},
                     "target_component": {"type": "string", "description": "Target bay or component"},
                     "justification": {"type": "string", "description": "Evidence justification"}

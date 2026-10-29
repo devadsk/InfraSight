@@ -30,15 +30,28 @@ def test_policy_class_a_allowed():
 
 
 def test_policy_class_b_held_for_approval():
-    # Replace physical drive requires supervisor approval
+    # replace_drive requires supervisor approval
     dec = PolicyEngine.check(
         "propose_action",
-        {"action_name": "replace_physical_drive", "target_device": "SRV-004", "justification": "Media degradation"}
+        {"action_name": "replace_drive", "target_device": "SRV-004", "justification": "Media degradation"}
     )
     assert dec.allowed is False
     assert dec.action_class == ActionClass.CLASS_B
     assert dec.requires_approval is True
     assert "supervisor approval" in dec.reason.lower()
+
+
+def test_policy_unknown_and_alias_actions_denied_by_default():
+    # Any unknown action name or alias is denied by default (Class C), never Class B
+    for unknown_action in ["replace_physical_drive", "format_drive", "delete_logs", "drop_table", "power_cycle"]:
+        dec = PolicyEngine.check(
+            "propose_action",
+            {"action_name": unknown_action, "target_device": "SRV-004", "justification": "Test"}
+        )
+        assert dec.allowed is False
+        assert dec.action_class == ActionClass.CLASS_C
+        assert dec.requires_approval is False
+        assert "denied by default" in dec.reason.lower() or "violates security policy" in dec.reason.lower()
 
 
 def test_policy_class_c_permanently_denied():

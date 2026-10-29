@@ -10,7 +10,7 @@ import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, Query, UploadFile, status
+from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, Query, Request, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -35,6 +35,30 @@ UPLOAD_DIR = Path("data/images/uploads")
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png"}
+
+
+def _verify_approver_token(request: Request) -> None:
+    """
+    Checks optional APPROVER_TOKEN environment variable.
+    Protects approval and rejection endpoints in production deployments.
+    """
+    token_required = os.getenv("APPROVER_TOKEN", "").strip()
+    if not token_required:
+        return
+
+    # Check Authorization: Bearer <token> or X-Approver-Token header
+    auth_header = request.headers.get("Authorization", "").strip()
+    provided_token = ""
+    if auth_header.startswith("Bearer "):
+        provided_token = auth_header[7:].strip()
+    elif "X-Approver-Token" in request.headers:
+        provided_token = request.headers["X-Approver-Token"].strip()
+
+    if provided_token != token_required:
+        raise HTTPException(
+            status_code=401,
+            detail="Unauthorized: invalid or missing approver authentication token.",
+        )
 
 
 @asynccontextmanager
@@ -117,6 +141,15 @@ async def create_incident(
             raise HTTPException(
                 status_code=422,
                 detail=f"File '{img.filename}' exceeds 10MB limit ({len(content)} bytes).",
+            )
+
+        # Magic bytes validation: real PNG or JPEG header
+        is_png = content.startswith(b"\x89PNG\r\n\x1a\n")
+        is_jpeg = content.startswith(b"\xff\xd8\xff")
+        if not (is_png or is_jpeg):
+            raise HTTPException(
+                status_code=422,
+                detail=f"File '{img.filename}' failed magic byte validation: content must be real PNG or JPEG image.",
             )
 
         safe_filename = f"{incident_id}_{uuid.uuid4().hex[:6]}{ext}"
@@ -271,6 +304,7 @@ def get_incident_audit(incident_id: str) -> Dict[str, Any]:
 @app.post("/actions/{action_id}/approve")
 def approve_action(
     action_id: str,
+    request: Request,
     decision: DecisionRequest = DecisionRequest(),
 ) -> Dict[str, Any]:
     """
@@ -278,6 +312,7 @@ def approve_action(
     Verifies single use, argument integrity, non-expiry, and executes mutation on simulated state.
     Resumes investigation with post-action telemetry read-back.
     """
+    _verify_approver_token(request)
     action = get_pending_action(action_id)
     if not action:
         raise HTTPException(status_code=404, detail=f"Action '{action_id}' not found.")
@@ -333,6 +368,7 @@ def approve_action(
     return {
         "action_id": action_id,
         "status": "executed",
+        "decided_by": decision.decided_by,
         "verification": exec_result,
         "incident_status": final_diag.status.value,
         "diagnosis": final_diag.model_dump(),
@@ -347,12 +383,14 @@ def approve_action(
 @app.post("/actions/{action_id}/reject")
 def reject_action(
     action_id: str,
+    request: Request,
     decision: DecisionRequest = DecisionRequest(),
 ) -> Dict[str, Any]:
     """
     Supervisor rejection endpoint.
     Records supervisor rejection, updates action record, and resumes investigation as 'unresolved'.
     """
+    _verify_approver_token(request)
     action = get_pending_action(action_id)
     if not action:
         raise HTTPException(status_code=404, detail=f"Action '{action_id}' not found.")
@@ -393,6 +431,7 @@ def reject_action(
     return {
         "action_id": action_id,
         "status": "rejected",
+        "decided_by": decision.decided_by,
         "incident_status": "unresolved",
         "diagnosis": final_diag.model_dump(),
         "mode": "simulated",

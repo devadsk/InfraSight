@@ -43,13 +43,17 @@ In strict compliance with the **New Work Only** rule of the Meta Global AI Devel
   - Bounded multi-turn orchestrator (`backend/orchestrator.py`) with 1 repair retry on malformed structured output.
   - SQLite audit store (`backend/storage.py`) capturing timeline events and token ledger.
 - **Phase 4: Safety Boundaries, Server-Side Approvals, Simulated Execution Engine & Full Evaluation**
-  - Server-side approval record engine (`pending_actions` in SQLite) bound to argument hashes with 10-minute expiry, single-use enforcement, and re-verified authorization checks.
+  - Server-side approval record engine (`pending_actions` in SQLite) bound to canonical argument hashes with 10-minute expiry, single-use enforcement, `APPROVER_TOKEN` supervisor authentication, and audit recording of `decided_by`.
+  - Action name allowlist (`CLASS_B_ACTIONS = {"replace_drive", "restart_service"}`) with strict deny-by-default for unknown or alias action names (`replace_physical_drive`, `format_drive`, `delete_logs`).
+  - File upload physical magic bytes validation (`image/png` and `image/jpeg`).
   - Simulated execution engine (`backend/executor.py`) operating on isolated mutable SQLite copies (`sim_state`), preserving static fixtures unmodified.
   - Post-execution verification reading telemetry back via the authoritative health metrics path before permitting `resolved_in_simulation`.
   - Resumable investigations (`backend/orchestrator.py`) that pause on Class B proposals and resume cleanly after API supervisor decisions.
   - FastAPI REST service (`backend/main.py`) exposing endpoints for incident lifecycle, background investigation, audit logs, and approval/rejection handling.
-  - Full evaluation runner (`scripts/run_eval.py`) evaluating all 13 benchmark scenarios against the real REST API flow, reporting k/13 headline metrics.
-- **Phase 5–7:** Planned UI and documentation (Streamlit interface, demo video script, final submission artifact).
+  - Evaluation harness (`scripts/run_eval.py`) supporting 16 benchmark scenarios, negative-control self-tests (`--self-test`), multi-run stability testing (`--repeats 3`), strict and adjusted rubric views, and exclusion of N/A scenarios from the evidence denominator.
+- **Phase 5: Interactive Streamlit Interface, Zero-Network Replay Mode & Final Reporting**
+  - Thin Streamlit client (`frontend/app.py` & `frontend/api_client.py`) with persistent simulated environment banner, interactive scenario picker, live/replay badges, real-time investigation timeline polling, evidence ledger, diagnosis cards, supervisor approval panel with countdown timer, and Markdown report export.
+  - Curated replay recordings (`eval/replay/`) enabling instant, 100% offline demonstration without API credits.
 
 ---
 

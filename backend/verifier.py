@@ -48,11 +48,13 @@ class DeterministicVerifier:
         raw_diagnosis_dict: Dict[str, Any],
         registered_incident_ids: Set[str],
         simulated_execution_verified: bool = False,
+        resolved_bay: Optional[str] = None,
     ) -> VerificationResult:
         reasons: List[str] = []
         invented_ids: List[str] = []
         unregistered_ids: List[str] = []
         downgrade_needed = False
+        downgrade_to_unresolved = False
 
         # 1. Parse or sanitize into Diagnosis schema
         try:
@@ -86,6 +88,7 @@ class DeterministicVerifier:
         # 2. Check each supporting evidence ID
         valid_supporting_ids = []
         has_non_model_source = False
+        source_categories = set()
 
         for sid in diagnosis.supporting_evidence_ids:
             # Check if resolves
@@ -106,8 +109,21 @@ class DeterministicVerifier:
 
             valid_supporting_ids.append(sid)
 
-            # Check if non-model source (telemetry, event, manual, measurement)
-            if sid.startswith(("EV-TEL-", "EV-LOG-", "MAN-", "EV-IMG-", "EV-DIAG-")):
+            # Categorize source types for diversity requirement
+            if sid.startswith("EV-TEL-"):
+                source_categories.add("telemetry")
+                has_non_model_source = True
+            elif sid.startswith("EV-LOG-"):
+                source_categories.add("event_log")
+                has_non_model_source = True
+            elif sid.startswith("MAN-"):
+                source_categories.add("manual")
+                has_non_model_source = True
+            elif sid.startswith("EV-IMG-"):
+                source_categories.add("image_measurement")
+                has_non_model_source = True
+            elif sid.startswith("EV-DIAG-"):
+                source_categories.add("diagnostic")
                 has_non_model_source = True
 
         # 3. Check contradictory evidence IDs
@@ -125,22 +141,43 @@ class DeterministicVerifier:
             reasons.append("Diagnosis lacks at least one authoritative non-model supporting source.")
             downgrade_needed = True
 
-        # 5. Check 'resolved_in_simulation' requirement
+        # 5. Rule: 'confirmed' requires support from at least two independent source types (e.g. telemetry + manual/logs)
+        if diagnosis.status == InvestigationStatus.CONFIRMED:
+            if len(source_categories) < 2:
+                reasons.append(
+                    f"Status 'confirmed' requires support from at least two independent source types, but cited only: {list(source_categories)}."
+                )
+                downgrade_needed = True
+
+            # Rule: 'confirmed' is only allowed for a component that the incident identified
+            # (or deterministic resolution identified). If the incident has no resolved bay,
+            # the diagnosis cannot confirm a failure of a specific bay (scope drift).
+            if not resolved_bay and diagnosis.component_id:
+                reasons.append(
+                    f"Diagnosis confirmed failure of specific bay '{diagnosis.component_id}', "
+                    f"but incident identified no specific bay (scope drift prevented)."
+                )
+                downgrade_needed = True
+                downgrade_to_unresolved = True
+
+        # 6. Check 'resolved_in_simulation' requirement
         if diagnosis.status == InvestigationStatus.RESOLVED_IN_SIMULATION:
             has_post_exec = any("POST" in sid for sid in valid_supporting_ids) or simulated_execution_verified
             if not (simulated_execution_verified and has_post_exec):
                 reasons.append("Status 'resolved_in_simulation' claimed without verified post-execution simulation result and telemetry citation.")
                 downgrade_needed = True
 
-        # 6. Apply downgrade if necessary
+        # 7. Apply downgrade if necessary
         new_status = diagnosis.status
         new_confidence = diagnosis.confidence
 
         if downgrade_needed:
-            if diagnosis.status in (InvestigationStatus.CONFIRMED, InvestigationStatus.RESOLVED_IN_SIMULATION):
+            if downgrade_to_unresolved:
+                new_status = InvestigationStatus.UNRESOLVED
+            elif diagnosis.status in (InvestigationStatus.CONFIRMED, InvestigationStatus.RESOLVED_IN_SIMULATION):
                 new_status = InvestigationStatus.MORE_EVIDENCE_REQUIRED
             new_confidence = "low"
-            reasons.append(f"Confidence downgraded to 'low' and status adjusted to '{new_status.value}' due to unverified claims.")
+            reasons.append(f"Confidence downgraded to 'low' and status adjusted to '{new_status.value}' due to safety verification failure.")
 
         verified_diag = diagnosis.model_copy(update={
             "status": new_status,

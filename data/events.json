@@ -97,5 +97,14 @@
     "severity": "ERROR",
     "event_code": "EVT-IPMI-TIMEOUT",
     "message": "Management controller interface i2c-0 bus hung; Redfish endpoint /redfish/v1/Systems/SRV-005 failing to respond."
+  },
+  {
+    "source_id": "EV-LOG-SRV003-0099",
+    "device_id": "SRV-003",
+    "timestamp": "2026-10-20T08:40:00Z",
+    "facility": "chassis",
+    "severity": "WARNING",
+    "event_code": "CODE-Y-PWR-9999",
+    "message": "Chassis backplane returned unmapped telemetry flag CODE-Y-PWR-9999. All sub-assemblies reporting healthy."
   }
 ]
