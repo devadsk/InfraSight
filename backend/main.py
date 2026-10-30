@@ -4,6 +4,7 @@ Exposes REST endpoints for incident lifecycle, agentic investigation,
 server-side human approval workflow, and simulated remediation execution.
 """
 
+import json
 import os
 import shutil
 import uuid
@@ -15,14 +16,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from backend.executor import SimulatedExecutionEngine
+from backend.meta_client import MetaClient
 from backend.orchestrator import InvestigationOrchestrator
+from backend.report import generate_incident_markdown_report
 from backend.schemas import InvestigationStatus
 from backend.storage import (
     get_incident,
     get_incident_audit_trail,
     get_incident_state,
+    get_incident_usage,
     get_pending_action,
     get_pending_actions_for_incident,
+    get_usage_summary,
     init_db,
     record_audit_event,
     record_incident,
@@ -98,13 +103,58 @@ class DecisionRequest(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# 1. Health Endpoint
+# 1. Health & Meta Information Endpoints
 # ---------------------------------------------------------------------------
 
 @app.get("/health", response_model=HealthResponse)
 def health_check() -> HealthResponse:
     """Returns service health and operational mode."""
     return HealthResponse()
+
+
+@app.get("/scenarios")
+def list_scenarios() -> List[Dict[str, Any]]:
+    """
+    Returns sanitized list of synthetic scenarios for picker.
+    Exposes only ID, name, description, category, and image frames.
+    NEVER exposes expected answers or rubrics.
+    Ordered with hero cases first.
+    """
+    scenarios_path = Path("data/scenarios.json")
+    if not scenarios_path.exists():
+        return []
+
+    with open(scenarios_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    # Hero scenario priority order
+    hero_order = ["SCN-02", "SCN-01", "SCN-10", "SCN-08", "SCN-03"]
+    order_map = {sid: i for i, sid in enumerate(hero_order)}
+
+    sanitized = []
+    for scn in data:
+        sid = scn.get("scenario_id")
+        frames = scn.get("image_frames", [])
+        if not frames and scn.get("image_reference"):
+            frames = [scn.get("image_reference")]
+
+        sanitized.append({
+            "scenario_id": sid,
+            "name": scn.get("name"),
+            "category": scn.get("category"),
+            "incident_description": scn.get("incident_description"),
+            "image_reference": scn.get("image_reference"),
+            "image_frames": frames,
+        })
+
+    sanitized.sort(key=lambda s: order_map.get(s["scenario_id"], 999))
+    return sanitized
+
+
+@app.get("/usage/summary")
+def get_usage_summary_endpoint() -> Dict[str, Any]:
+    """Cumulative tokens, cost, and call counts from usage ledger."""
+    return get_usage_summary()
 
 
 # ---------------------------------------------------------------------------
@@ -115,6 +165,8 @@ def health_check() -> HealthResponse:
 async def create_incident(
     description: str = Form(..., description="Technician report or alert description"),
     images: List[UploadFile] = File(default=[], description="Chassis or LED indicator photos"),
+    image_paths: Optional[str] = Form(default=None, description="Pre-existing image paths (JSON list)"),
+    mode: str = Form(default="live", description="Execution mode: 'live' or 'replay'"),
 ) -> Dict[str, Any]:
     """
     Creates a new troubleshooting incident with description and optional hardware photos.
@@ -125,6 +177,14 @@ async def create_incident(
 
     incident_id = f"INC-{uuid.uuid4().hex[:8].upper()}"
     saved_image_paths: List[str] = []
+
+    if image_paths:
+        try:
+            parsed = json.loads(image_paths)
+            if isinstance(parsed, list):
+                saved_image_paths.extend(parsed)
+        except Exception:
+            pass
 
     for img in images:
         if not img.filename:
@@ -163,13 +223,14 @@ async def create_incident(
         user_text=description.strip(),
         image_paths=saved_image_paths,
         final_status="created",
+        mode=mode,
     )
 
     record_audit_event(
         incident_id=incident_id,
         step_number=0,
         event_type="incident_created",
-        details={"description": description.strip(), "image_count": len(saved_image_paths)},
+        details={"description": description.strip(), "image_count": len(saved_image_paths), "mode": mode},
     )
 
     inc = get_incident(incident_id)
@@ -179,7 +240,7 @@ async def create_incident(
         "image_paths": saved_image_paths,
         "status": "created",
         "created_at": inc["created_at"] if inc else None,
-        "mode": "simulated",
+        "mode": mode,
     }
 
 
@@ -203,7 +264,7 @@ def start_investigation(
     incident_id: str,
     background_tasks: BackgroundTasks,
     sync: bool = Query(default=False, description="Run synchronously if True (returns full diagnosis)"),
-    mode: str = Query(default="simulated"),
+    mode: str = Query(default="live", description="Execution mode: 'live' or 'replay'"),
 ) -> Dict[str, Any]:
     """
     Kicks off agentic evidence-first investigation.
@@ -213,9 +274,12 @@ def start_investigation(
     if not inc:
         raise HTTPException(status_code=404, detail=f"Incident '{incident_id}' not found.")
 
-    orchestrator = InvestigationOrchestrator()
+    is_replay = (mode == "replay")
+    client = MetaClient(replay_mode=is_replay, mock_mode=is_replay)
+    orchestrator = InvestigationOrchestrator(meta_client=client)
 
     if sync:
+        update_incident_status(incident_id, final_status="investigating", mode=mode)
         diag, v_res, _ = orchestrator.investigate(
             incident_id=incident_id,
             user_text=inc["user_text"],
@@ -229,7 +293,7 @@ def start_investigation(
             "mode": mode,
         }
 
-    update_incident_status(incident_id, final_status="investigating")
+    update_incident_status(incident_id, final_status="investigating", mode=mode)
     background_tasks.add_task(_run_investigation_worker, incident_id, orchestrator)
 
     return {
@@ -241,13 +305,13 @@ def start_investigation(
 
 
 # ---------------------------------------------------------------------------
-# 4. Incident Details & Timeline
+# 4. Incident Details, Report & Timeline
 # ---------------------------------------------------------------------------
 
 @app.get("/incidents/{incident_id}")
 def get_incident_details(incident_id: str) -> Dict[str, Any]:
     """
-    Returns incident status, evidence registry, timeline, diagnosis, and pending actions.
+    Returns incident status, evidence registry, timeline, diagnosis, pending actions, and usage.
     """
     inc = get_incident(incident_id)
     if not inc:
@@ -256,6 +320,7 @@ def get_incident_details(incident_id: str) -> Dict[str, Any]:
     audit_trail = get_incident_audit_trail(incident_id)
     pending_actions = get_pending_actions_for_incident(incident_id)
     state = get_incident_state(incident_id)
+    usage_info = get_incident_usage(incident_id)
 
     raw_diag = inc.get("raw_diagnosis") or {}
     supporting_evidence = raw_diag.get("supporting_evidence_ids", [])
@@ -274,7 +339,23 @@ def get_incident_details(incident_id: str) -> Dict[str, Any]:
         "pending_actions": pending_actions,
         "timeline": audit_trail,
         "evidence": supporting_evidence,
-        "mode": inc.get("mode") or "simulated",
+        "mode": inc.get("mode") or "live",
+        "usage": usage_info,
+    }
+
+
+@app.get("/incidents/{incident_id}/report")
+def get_incident_report(incident_id: str) -> Dict[str, Any]:
+    """Returns final incident post-investigation report as Markdown (Master Spec Step 9)."""
+    inc = get_incident(incident_id)
+    if not inc:
+        raise HTTPException(status_code=404, detail=f"Incident '{incident_id}' not found.")
+
+    md_report = generate_incident_markdown_report(incident_id)
+    return {
+        "incident_id": incident_id,
+        "format": "markdown",
+        "report": md_report,
     }
 
 

@@ -1,0 +1,29 @@
+{
+  "id": "chatcmpl-01a1886d-ddb6-7694-9dda-55f527779238",
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\n  \"diagnosis\": \"more_evidence_required\",\n  \"device_id\": \"SRV-001\",\n  \"bay_id\": \"BAY-02\",\n  \"question\": \"Is drive 100% healthy?\",\n  \"answer\": \"No - NOT verified 100% healthy despite green LED.\",\n  \"evidence_cited\": [\n    \"EV-IMG-SRV001_BAY02_GREEN\",\n    \"EV-IMG-SRV001_BAY02_GREEN-VISION\",\n    \"EV-TEL-SRV001-BAY02-S1\",\n    \"EV-LOG-SRV001-0001\",\n    \"MAN-LED-01\",\n    \"MAN-TELEMETRY-01\"\n  ],\n  \"findings\": {\n    \"visual\": \"Green LED detected on SRV-001 BAY-02 (EV-IMG-SRV001_BAY02_GREEN, EV-IMG-SRV001_BAY02_GREEN-VISION). Per MAN-LED-01, solid green signifies normal activity WITH healthy SMART telemetry - LED alone does not prove health.\",\n    \"telemetry\": \"SMART Status=warning (EV-TEL-SRV001-BAY02-S1): CurrentPendingSectors=34, ReallocatedSectors=0, PredictiveFailure=CLEARED/false, RAID=optimal, Temp 38C. Contradicts 100% healthy claim.\",\n    \"logs\": \"EV-LOG-SRV001-0001 [WARNING] EVT-NVME-MEDIA-WARN: 34 pending sectors detected during periodic background scrubbing - corroborates telemetry.\",\n    \"manual_rule\": \"MAN-TELEMETRY-01: When Current Pending Sector Count is elevated while Reallocated Sector Count remains zero, instability may be soft read errors (power loss/transient) rather than physical defect. An extended diagnostic surface scan must be executed. If scan completes successfully and pending clears to zero with zero reallocations, drive is cleared safe. Replacement only warranted if reallocations increase or unrecoverable errors persist.\"\n  },\n  \"missing_information\": [\n    \"Result of extended diagnostic surface scan (surface_sector_verification / SMART extended surface scan per MAN-TELEMETRY-01 and MAN-DIAG-01) to discriminate transient unstable sectors vs permanent media failure - pending sectors after scan, reallocated sectors after scan, unrecoverable read errors\"\n  ],\n  \"recommended_action\": \"Do NOT replace drive at this time. Request authorization to run extended surface scan (test_type=surface_sector_verification) on SRV-001 BAY-02. If scan clears pending to 0 with 0 reallocations, drive verified safe to remain in service. If reallocations increase or errors persist, then consider replacement under approval.\",\n  \"actions_taken\": \"No active diagnostics executed and no replacement proposed per triage policy - diagnostic assessment only, discriminating test requires explicit technician request.\"\n}\n",
+        "refusal": null,
+        "role": "assistant"
+      },
+      "logprobs": null
+    }
+  ],
+  "created": 1793290263,
+  "model": "muse-spark-1.3",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 1558,
+    "prompt_tokens": 5347,
+    "total_tokens": 6905,
+    "completion_tokens_details": {
+      "reasoning_tokens": 960
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 4081
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "id": "chatcmpl-01a18720-37e9-7787-a513-ec6ff34d5e28",
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "content": "Investigating this command attempt on SRV-004 \u2014 gathering inventory and logs to verify system state.",
+        "refusal": null,
+        "tool_calls": [
+          {
+            "id": "call_6cf08192-8d18-44b7-8ec4-5167ed8f0682",
+            "type": "function",
+            "function": {
+              "name": "lookup_device",
+              "arguments": "{\"device_id\":\"SRV-004\"}"
+            }
+          },
+          {
+            "id": "call_63686dd6-5d52-4ae9-ada6-860f30f6ca67",
+            "type": "function",
+            "function": {
+              "name": "get_recent_events",
+              "arguments": "{\"device_id\":\"SRV-004\",\"limit\":10}"
+            }
+          }
+        ],
+        "role": "assistant"
+      },
+      "logprobs": null
+    }
+  ],
+  "created": 1793268398,
+  "model": "muse-spark-1.3",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 732,
+    "prompt_tokens": 1994,
+    "total_tokens": 2726,
+    "completion_tokens_details": {
+      "reasoning_tokens": 583
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

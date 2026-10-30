@@ -18,6 +18,8 @@ load_dotenv()
 
 CACHE_DIR = Path("eval/cache/meta_api")
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
+REPLAY_DIR = Path("eval/replay")
+REPLAY_DIR.mkdir(parents=True, exist_ok=True)
 
 
 class MetaClient:
@@ -27,13 +29,16 @@ class MetaClient:
         base_url: Optional[str] = None,
         default_model: Optional[str] = None,
         mock_mode: Optional[bool] = None,
+        replay_mode: Optional[bool] = None,
     ):
         self.api_key = api_key or os.getenv("META_API_KEY", "")
         self.base_url = (base_url or os.getenv("META_API_BASE", "https://api.meta.ai/v1")).rstrip("/")
         self.default_model = default_model or os.getenv("META_MODEL", "muse-spark-1.3")
         
         env_mock = os.getenv("MOCK_MODE", "false").lower() in ("true", "1", "yes")
+        env_replay = os.getenv("REPLAY_MODE", "false").lower() in ("true", "1", "yes")
         self.mock_mode = mock_mode if mock_mode is not None else env_mock
+        self.replay_mode = replay_mode if replay_mode is not None else env_replay
 
     def _compute_cache_key(self, payload: Dict[str, Any]) -> str:
         serialized = json.dumps(payload, sort_keys=True)
@@ -73,30 +78,36 @@ class MetaClient:
             payload["response_format"] = response_format
 
         cache_key = self._compute_cache_key(payload)
+        replay_file = REPLAY_DIR / f"{cache_key}.json"
         cache_file = CACHE_DIR / f"{cache_key}.json"
 
-        # 1. Check cache / mock mode
-        if self.mock_mode or cache_file.exists():
-            if cache_file.exists():
-                with open(cache_file, "r", encoding="utf-8") as f:
-                    cached_data = json.load(f)
-                record_usage(
-                    purpose=purpose,
-                    model_id=used_model,
-                    usage=cached_data.get("usage", {}),
-                    incident_id=incident_id,
-                    reasoning_effort=reasoning_effort,
-                    latency_s=0.0,
-                    is_replay=True,
-                )
-                return cached_data, True
-            elif self.mock_mode:
-                raise RuntimeError(
-                    f"Mock mode enabled but cache file {cache_file.name} does not exist for payload."
-                )
+        # 1. Check replay directory, then cache directory
+        file_to_load = None
+        if replay_file.exists():
+            file_to_load = replay_file
+        elif cache_file.exists():
+            file_to_load = cache_file
+
+        if file_to_load is not None:
+            with open(file_to_load, "r", encoding="utf-8") as f:
+                cached_data = json.load(f)
+            record_usage(
+                purpose=purpose,
+                model_id=used_model,
+                usage=cached_data.get("usage", {}),
+                incident_id=incident_id,
+                reasoning_effort=reasoning_effort,
+                latency_s=0.0,
+                is_replay=True,
+            )
+            return cached_data, True
+        elif self.mock_mode or self.replay_mode:
+            raise RuntimeError(
+                f"Replay mode active but recorded response not found for request key {cache_key[:12]}... (purpose: {purpose})"
+            )
 
         if not self.api_key:
-            raise ValueError("META_API_KEY is not configured and MOCK_MODE is false.")
+            raise ValueError("META_API_KEY is not configured and REPLAY_MODE is false.")
 
         url = f"{self.base_url}/chat/completions"
         headers = {

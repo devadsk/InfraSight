@@ -140,6 +140,7 @@ def record_incident(
     confidence: Optional[str] = None,
     summary: Optional[str] = None,
     raw_diagnosis: Optional[Dict[str, Any]] = None,
+    mode: str = "live",
     db_path: Optional[Path] = None
 ) -> None:
     init_db(db_path)
@@ -148,8 +149,8 @@ def record_incident(
     with conn:
         conn.execute("""
             INSERT OR REPLACE INTO incidents (
-                incident_id, created_at, device_id, bay_id, user_text, image_paths, final_status, confidence, summary, raw_diagnosis
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                incident_id, created_at, device_id, bay_id, user_text, image_paths, final_status, confidence, summary, raw_diagnosis, mode
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
         """, (
             incident_id,
             now,
@@ -160,7 +161,8 @@ def record_incident(
             final_status,
             confidence,
             summary,
-            json.dumps(raw_diagnosis or {})
+            json.dumps(raw_diagnosis or {}),
+            mode
         ))
     conn.close()
 
@@ -522,6 +524,7 @@ def update_incident_status(
     summary: Optional[str] = None,
     confidence: Optional[str] = None,
     raw_diagnosis: Optional[Dict[str, Any]] = None,
+    mode: Optional[str] = None,
     db_path: Optional[Path] = None,
 ) -> None:
     init_db(db_path)
@@ -532,13 +535,77 @@ def update_incident_status(
             SET final_status = ?,
                 summary = COALESCE(?, summary),
                 confidence = COALESCE(?, confidence),
-                raw_diagnosis = COALESCE(?, raw_diagnosis)
+                raw_diagnosis = COALESCE(?, raw_diagnosis),
+                mode = COALESCE(?, mode)
             WHERE incident_id = ?;
         """, (
             final_status,
             summary,
             confidence,
             json.dumps(raw_diagnosis) if raw_diagnosis is not None else None,
+            mode,
             incident_id,
         ))
     conn.close()
+
+
+def get_usage_summary(db_path: Optional[Path] = None) -> Dict[str, Any]:
+    """Returns cumulative usage statistics across all incidents."""
+    init_db(db_path)
+    conn = get_db_connection(db_path)
+    cursor = conn.execute("""
+        SELECT COUNT(*) as total_calls,
+               COALESCE(SUM(total_tokens), 0) as total_tokens,
+               COALESCE(SUM(estimated_cost_usd), 0.0) as total_cost_usd
+        FROM usage_ledger;
+    """)
+    row = cursor.fetchone()
+    total_calls = row["total_calls"]
+    total_tokens = row["total_tokens"]
+    total_cost_usd = row["total_cost_usd"]
+
+    # By Purpose
+    cursor = conn.execute("""
+        SELECT purpose, model_id, COUNT(*) as call_count,
+               SUM(total_tokens) as tokens, SUM(estimated_cost_usd) as cost_usd
+        FROM usage_ledger
+        GROUP BY purpose, model_id
+        ORDER BY tokens DESC;
+    """)
+    by_purpose = [dict(r) for r in cursor.fetchall()]
+
+    conn.close()
+    return {
+        "total_calls": total_calls,
+        "total_tokens": total_tokens,
+        "total_cost_usd": round(total_cost_usd, 6),
+        "by_purpose": by_purpose,
+    }
+
+
+def get_incident_usage(incident_id: str, db_path: Optional[Path] = None) -> Dict[str, Any]:
+    """Returns per-call usage entries for a specific incident."""
+    init_db(db_path)
+    conn = get_db_connection(db_path)
+    cursor = conn.execute("""
+        SELECT call_id, timestamp, purpose, model_id, reasoning_effort,
+               prompt_tokens, completion_tokens, cached_tokens, total_tokens,
+               estimated_cost_usd, latency_s, is_replay
+        FROM usage_ledger
+        WHERE incident_id = ?
+        ORDER BY call_id ASC;
+    """, (incident_id,))
+    rows = [dict(r) for r in cursor.fetchall()]
+    conn.close()
+
+    total_tokens = sum(r.get("total_tokens", 0) for r in rows)
+    total_cost = sum(r.get("estimated_cost_usd", 0.0) for r in rows)
+
+    return {
+        "incident_id": incident_id,
+        "call_count": len(rows),
+        "total_tokens": total_tokens,
+        "total_cost_usd": round(total_cost, 6),
+        "calls": rows,
+    }
+

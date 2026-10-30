@@ -1,0 +1,63 @@
+{
+  "id": "chatcmpl-01a1886d-1574-75e2-aa29-d72a578ce40a",
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "content": "Amber alert on BAY-04 \u2014 I'll verify telemetry and logs before judging drive health.",
+        "refusal": null,
+        "tool_calls": [
+          {
+            "id": "call_8d2dbc30-e20e-4276-8835-0469ffc3554b",
+            "type": "function",
+            "function": {
+              "name": "lookup_device",
+              "arguments": "{\"device_id\":\"SRV-004\"}"
+            }
+          },
+          {
+            "id": "call_8d2ee386-a8cf-4bf5-b179-3a12a8f48c46",
+            "type": "function",
+            "function": {
+              "name": "get_health_metrics",
+              "arguments": "{\"bay_id\":\"BAY-04\",\"device_id\":\"SRV-004\"}"
+            }
+          },
+          {
+            "id": "call_1ca372e1-d980-4d62-b2a5-2f773f1718ce",
+            "type": "function",
+            "function": {
+              "name": "get_recent_events",
+              "arguments": "{\"device_id\":\"SRV-004\",\"limit\":15}"
+            }
+          },
+          {
+            "id": "call_5ae4f8ab-2e34-46df-9ecd-2436938d37e9",
+            "type": "function",
+            "function": {
+              "name": "search_manual",
+              "arguments": "{\"model_id\":\"SYNTH-SERVER-X\",\"query\":\"solid amber LED drive bay\"}"
+            }
+          }
+        ],
+        "role": "assistant"
+      },
+      "logprobs": null
+    }
+  ],
+  "created": 1793290212,
+  "model": "muse-spark-1.3",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 403,
+    "prompt_tokens": 2141,
+    "total_tokens": 2544,
+    "completion_tokens_details": {
+      "reasoning_tokens": 114
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

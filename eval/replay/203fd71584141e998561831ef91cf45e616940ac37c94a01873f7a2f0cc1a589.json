@@ -1,0 +1,29 @@
+{
+  "id": "chatcmpl-01a17e2f-f7ff-733c-8acc-d1504856ff97",
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "{\"label_read\": \"SRV-004 / BAY-02\", \"led_color\": \"amber\", \"description\": \"Simplified dark square bay front with a horizontal slot at the top, a black label plate in the middle, and a round illuminated indicator at the bottom center.\"}",
+        "refusal": null,
+        "role": "assistant"
+      },
+      "logprobs": null
+    }
+  ],
+  "created": 1793118435,
+  "model": "muse-spark-1.3",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 1020,
+    "prompt_tokens": 216,
+    "total_tokens": 1236,
+    "completion_tokens_details": {
+      "reasoning_tokens": 953
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

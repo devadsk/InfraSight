@@ -1,0 +1,55 @@
+{
+  "id": "chatcmpl-01a18720-4961-712f-89f9-a1cf7b59a6ab",
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "content": "Initial logs show a critical drive warning and a separate rebuild in progress \u2014 now checking drive health and vendor rules to separate fault from normal activity.",
+        "refusal": null,
+        "tool_calls": [
+          {
+            "id": "call_882a5573-d435-4999-97a8-e23e0bd5440f",
+            "type": "function",
+            "function": {
+              "name": "get_health_metrics",
+              "arguments": "{\"bay_id\":\"BAY-04\",\"device_id\":\"SRV-004\"}"
+            }
+          },
+          {
+            "id": "call_7a494854-df20-4430-8ab3-4b52032d997e",
+            "type": "function",
+            "function": {
+              "name": "get_health_metrics",
+              "arguments": "{\"bay_id\":\"BAY-02\",\"device_id\":\"SRV-004\"}"
+            }
+          },
+          {
+            "id": "call_b246827e-03af-41a6-a3ea-c206c6a3bae3",
+            "type": "function",
+            "function": {
+              "name": "search_manual",
+              "arguments": "{\"model_id\":\"SYNTH-SERVER-X\",\"query\":\"SMART predictive failure amber fault\"}"
+            }
+          }
+        ],
+        "role": "assistant"
+      },
+      "logprobs": null
+    }
+  ],
+  "created": 1793268402,
+  "model": "muse-spark-1.3",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 944,
+    "prompt_tokens": 3377,
+    "total_tokens": 4321,
+    "completion_tokens_details": {
+      "reasoning_tokens": 691
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "id": "chatcmpl-01a18860-cd6c-7434-8711-7178caf1200c",
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "content": "Amber alert on SRV-004 bay 2 \u2014 I'll verify the drive health before authorizing any replacement.",
+        "refusal": null,
+        "tool_calls": [
+          {
+            "id": "call_06905e02-65c1-4e59-876a-1298fdc9102f",
+            "type": "function",
+            "function": {
+              "name": "lookup_device",
+              "arguments": "{\"device_id\":\"SRV-004\"}"
+            }
+          },
+          {
+            "id": "call_5103fdf6-fb08-44d3-8221-4b612fbd5c53",
+            "type": "function",
+            "function": {
+              "name": "get_health_metrics",
+              "arguments": "{\"bay_id\":\"BAY-02\",\"device_id\":\"SRV-004\"}"
+            }
+          },
+          {
+            "id": "call_584fd1fd-5fb3-4976-81c5-b7d948f6cfeb",
+            "type": "function",
+            "function": {
+              "name": "get_recent_events",
+              "arguments": "{\"device_id\":\"SRV-004\",\"limit\":10}"
+            }
+          },
+          {
+            "id": "call_bc693f31-3bd2-451c-9586-4988e7cef665",
+            "type": "function",
+            "function": {
+              "name": "search_manual",
+              "arguments": "{\"model_id\":\"SYNTH-SERVER-X\",\"query\":\"amber LED blinking BAY drive status\"}"
+            }
+          }
+        ],
+        "role": "assistant"
+      },
+      "logprobs": null
+    }
+  ],
+  "created": 1793289407,
+  "model": "muse-spark-1.3",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 517,
+    "prompt_tokens": 2144,
+    "total_tokens": 2661,
+    "completion_tokens_details": {
+      "reasoning_tokens": 221
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  }
+}

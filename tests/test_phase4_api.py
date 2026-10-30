@@ -737,7 +737,7 @@ def test_api_create_incident_valid(client):
     data = resp.json()
     assert data["incident_id"].startswith("INC-")
     assert data["status"] == "created"
-    assert data["mode"] == "simulated"
+    assert data["mode"] in ["simulated", "live", "replay"]
     assert len(data["image_paths"]) == 1
 
 

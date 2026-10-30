@@ -74,7 +74,8 @@ InfraSight/
 │   ├── evidence.py          # Deterministic evidence lookups & physical pixel analyzer
 │   └── schemas.py           # Strict Pydantic contracts for telemetry, logs, manuals, diagnosis
 ├── frontend/
-│   └── app.py               # Streamlit interactive investigator interface (Phase 5)
+│   ├── app.py               # Streamlit interactive investigator interface (Phase 5)
+│   └── api_client.py        # HTTP client wrapping all backend REST calls
 ├── data/
 │   ├── devices.json         # 5 fictional servers (SRV-001 to SRV-005)
 │   ├── telemetry.json       # SMART metrics with stable IDs EV-TEL-...
@@ -87,8 +88,20 @@ InfraSight/
 │   └── test_evidence.py     # 17 unit tests verifying lookups, grounding, and pixel analysis
 ├── scripts/
 │   ├── generate_data.py     # Seeded data generator (reproducible with fixed time anchor)
+│   ├── run_local.py         # Local runner: starts FastAPI + Streamlit concurrently
+│   ├── record_replay.py     # Records & verifies offline replay cache (eval/replay/)
+│   ├── capture_screenshots.py # Playwright screenshot capture for docs/screenshots/
+│   ├── run_eval.py          # Benchmark evaluation harness (16 scenarios, strict rubric)
 │   ├── test_meta_api.py     # Live API verification suite
 │   └── test_sam_pillow_images.py # SAM 3.1 gate testing on generated renders
+├── tests/
+│   ├── test_evidence.py     # Evidence engine unit tests (lookups, grounding, pixel analysis)
+│   ├── test_validation.py   # Schema and referential integrity tests
+│   ├── test_phase3_orchestrator.py # Orchestrator unit tests
+│   ├── test_phase4_api.py   # API endpoint, policy, approval, executor tests
+│   └── test_phase5_ui.py    # Streamlit UI & replay mode tests
+├── eval/
+│   └── replay/              # Curated offline cache (19 verified response files, 5 hero scenarios)
 ├── docs/
 │   ├── SPEC.md              # Master engineering specification
 │   ├── SPEC_ADDENDUM_v2.md  # Official rules & architectural addendum
@@ -124,19 +137,67 @@ InfraSight/
    ```
 
 ### Running Tests
-Run the deterministic evidence engine test suite:
+
+Run the full deterministic test suite (70 tests, no live API calls):
 ```bash
-python -m pytest tests/test_evidence.py -v
+python -m pytest tests/ -v
 ```
+
+Expected output: **70 passed** across 5 test files.
+
+### Running the Streamlit UI (Offline Replay Mode — no API key needed)
+
+Start both the FastAPI backend and Streamlit frontend together:
+```bash
+python scripts/run_local.py
+```
+
+Then open: **http://localhost:8501**
+
+- Select **"Replay a recorded run"** mode (default).
+- Choose a hero scenario from the dropdown (SCN-02 is first).
+- Click **"Start Investigation"** — runs fully offline with zero tokens.
+
+Or start services individually:
+```bash
+# Terminal 1 – backend
+python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000
+
+# Terminal 2 – frontend  
+python -m streamlit run frontend/app.py --server.port 8501
+```
+
+### Offline Replay Verification
+
+To verify all 5 hero scenarios replay cleanly with no network access:
+```bash
+python scripts/record_replay.py --verify
+```
+
+Expected output: `[PASS]` for SCN-02, SCN-01, SCN-08, SCN-10, SCN-03.
 
 ### Running the Live Meta Model API Verification Suite
 ```bash
 python scripts/test_meta_api.py
 ```
 
+> **Note:** Requires a valid `META_API_KEY` in `.env`.
+
 ---
 
-## 5. Ground Truth Evaluation Scenarios (12 Scenarios)
+## 5. UI Screenshots
+
+| Screenshot | Description |
+|---|---|
+| ![Hero 2 Rebuild Contradiction](docs/screenshots/01_hero2_rebuild_contradiction.png) | **SCN-02 Hero** — Blinking amber LED correctly identified as RAID rebuild, replacement denied |
+| ![Multimodal Perception Tab](docs/screenshots/02_multimodal_perception_tab.png) | **Image & Perception Tab** — Pixel hue analysis and vision model results side-by-side |
+| ![Meta Model Accounting](docs/screenshots/03_meta_model_accounting_ledger.png) | **Meta Model Activity Tab** — Per-call token usage ledger (`muse-spark-1.3`) |
+| ![Incident Report](docs/screenshots/04_markdown_incident_report.png) | **Post-Incident Report Tab** — Full Markdown audit report |
+| ![Class C Safety Denial](docs/screenshots/05_class_c_safety_denial.png) | **SCN-10 Safety Moment** — Arbitrary `reboot -f` command denied by Class C policy |
+
+---
+
+## 5. Ground Truth Evaluation Scenarios (13 Scenarios)
 
 | Scenario ID | Name | Target Device / Bay | Core Evidence IDs | Expected Status | Description |
 |---|---|---|---|---|---|
