@@ -162,3 +162,122 @@ class MetaClient:
         )
 
         return data, False
+
+    def sam_localize(
+        self,
+        image_path: str,
+        concept: str = "LED",
+        incident_id: Optional[str] = None,
+        timeout: int = 60,
+    ) -> Tuple[List[Dict[str, int]], bool]:
+        """
+        Calls /v1/responses with model sam-3.1 for concept localization.
+        Checks recorded replay and sample files first.
+        Returns (boxes_list, is_replay_bool).
+        """
+        from backend.evidence import parse_sam_markers
+
+        # 1. Check known recorded sample responses
+        img_name = Path(image_path).name.lower()
+        sample_map = {
+            "external_hard_disk.jpeg": "docs/sam_samples/real_photos_retry/call_1_external_hard_disk_LED_response.json",
+            "raspberrypi.jpg": "docs/sam_samples/real_photos_retry/call_3_Raspberrypi_LED_response.json",
+            "router.jpeg": "docs/sam_samples/real_photos_retry/call_5_router_LED_response.json",
+        }
+        known_sample = sample_map.get(img_name)
+        if known_sample and Path(known_sample).exists():
+            with open(known_sample, "r", encoding="utf-8") as sf:
+                sdata = json.load(sf)
+            text = ""
+            for item in sdata.get("output", []):
+                for c in item.get("content", []):
+                    if c.get("type") == "output_text":
+                        text += c.get("text", "")
+            boxes = parse_sam_markers(text)
+            record_usage(
+                purpose="sam_localization",
+                model_id="sam-3.1",
+                usage={"input_tokens": 0, "output_tokens": 0, "total_tokens": 0, "images_processed": 1},
+                incident_id=incident_id,
+                reasoning_effort=None,
+                latency_s=0.0,
+                is_replay=True,
+            )
+            return boxes, True
+
+        # 2. Check general cache / replay
+        payload = {
+            "model": "sam-3.1",
+            "concept": concept,
+            "image": Path(image_path).name,
+        }
+        cache_key = self._compute_cache_key(payload)
+        replay_file = REPLAY_DIR / f"{cache_key}.json"
+        cache_file = CACHE_DIR / f"{cache_key}.json"
+
+        file_to_load = None
+        if replay_file.exists():
+            file_to_load = replay_file
+        elif cache_file.exists():
+            file_to_load = cache_file
+
+        if file_to_load is not None:
+            with open(file_to_load, "r", encoding="utf-8") as f:
+                cdata = json.load(f)
+            record_usage(
+                purpose="sam_localization",
+                model_id="sam-3.1",
+                usage=cdata.get("usage", {}),
+                incident_id=incident_id,
+                latency_s=0.0,
+                is_replay=True,
+            )
+            return cdata.get("boxes", []), True
+        elif self.mock_mode or self.replay_mode or not self.api_key:
+            # Offline or unconfigured fallback: returns 0 matches
+            return [], True
+
+        # 3. Live call to /v1/responses
+        import base64
+        mime = "image/jpeg" if Path(image_path).suffix.lower() in [".jpg", ".jpeg"] else "image/png"
+        with open(image_path, "rb") as f:
+            b64 = base64.b64encode(f.read()).decode("utf-8")
+
+        req_payload = {
+            "model": "sam-3.1",
+            "input_text": concept,
+            "input_image": f"data:{mime};base64,{b64}",
+        }
+        url = f"{self.base_url}/responses"
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
+
+        t0 = time.time()
+        resp = requests.post(url, headers=headers, json=req_payload, timeout=timeout)
+        elapsed = time.time() - t0
+        resp.raise_for_status()
+        data = resp.json()
+
+        text = ""
+        for item in data.get("output", []):
+            for c in item.get("content", []):
+                if c.get("type") == "output_text":
+                    text += c.get("text", "")
+        boxes = parse_sam_markers(text)
+
+        # Cache result
+        with open(cache_file, "w", encoding="utf-8") as f:
+            json.dump({"boxes": boxes, "raw": data}, f, indent=2)
+
+        record_usage(
+            purpose="sam_localization",
+            model_id="sam-3.1",
+            usage=data.get("usage", {}),
+            incident_id=incident_id,
+            latency_s=round(elapsed, 2),
+            is_replay=False,
+        )
+        return boxes, False
+

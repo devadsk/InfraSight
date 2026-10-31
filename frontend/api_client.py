@@ -79,7 +79,9 @@ class InfraSightAPIClient:
         description: str,
         image_files: Optional[List[Tuple[str, bytes, str]]] = None,
         image_paths: Optional[List[str]] = None,
-        mode: str = "live",
+        mode: str = "replay",
+        live_password: Optional[str] = None,
+        session_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Creates a new incident record.
@@ -92,13 +94,23 @@ class InfraSightAPIClient:
                 files.append(("images", (fname, bdata, ctype)))
 
         data = {"description": description, "mode": mode}
+        if live_password:
+            data["live_password"] = live_password
         if image_paths:
             data["image_paths"] = json.dumps(image_paths)
+
+        headers = {}
+        if live_password:
+            headers["X-Live-Password"] = live_password
+        if session_id:
+            headers["X-Session-ID"] = session_id
+
         try:
             resp = requests.post(
                 self._url("/incidents"),
                 data=data,
                 files=files if files else None,
+                headers=headers if headers else None,
                 timeout=self.timeout,
             )
             return self._handle_response(resp)
@@ -109,13 +121,26 @@ class InfraSightAPIClient:
         self,
         incident_id: str,
         sync: bool = False,
-        mode: str = "live",
+        mode: str = "replay",
+        live_password: Optional[str] = None,
+        session_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         """Starts investigation worker."""
+        headers = {}
+        if live_password:
+            headers["X-Live-Password"] = live_password
+        if session_id:
+            headers["X-Session-ID"] = session_id
+
+        params: Dict[str, Any] = {"sync": sync, "mode": mode}
+        if live_password:
+            params["live_password"] = live_password
+
         try:
             resp = requests.post(
                 self._url(f"/incidents/{incident_id}/investigate"),
-                params={"sync": sync, "mode": mode},
+                params=params,
+                headers=headers if headers else None,
                 timeout=120 if sync else self.timeout,
             )
             return self._handle_response(resp)

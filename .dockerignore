@@ -1,0 +1,14 @@
+.git
+.github
+.env
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+eval/cache
+data/infrasight.db
+data/images/uploads/*
+.pytest_cache
+.coverage
+htmlcov

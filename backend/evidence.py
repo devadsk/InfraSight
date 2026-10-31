@@ -607,3 +607,69 @@ def analyze_led_pixels(
         notes=notes,
         is_blinking=is_blinking
     )
+
+
+def parse_sam_markers(sam_text: str) -> List[Dict[str, int]]:
+    """
+    Extracts box coordinates from SAM marker text:
+    - Format 1: <|box;x1=...;y1=...;x2=...;y2=...;w=...;h=...|>
+    - Format 2: [x1, y1, x2, y2]
+    """
+    pattern1 = r"<\|box;x1=(\d+);y1=(\d+);x2=(\d+);y2=(\d+);w=(\d+);h=(\d+)\|>"
+    matches1 = re.findall(pattern1, sam_text)
+    boxes = []
+    for m in matches1:
+        boxes.append({
+            "x1": int(m[0]),
+            "y1": int(m[1]),
+            "x2": int(m[2]),
+            "y2": int(m[3]),
+            "w": int(m[4]),
+            "h": int(m[5]),
+        })
+    if boxes:
+        return boxes
+
+    pattern2 = r"\[\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\]"
+    matches2 = re.findall(pattern2, sam_text)
+    for m in matches2:
+        x1, y1, x2, y2 = int(m[0]), int(m[1]), int(m[2]), int(m[3])
+        boxes.append({
+            "x1": x1,
+            "y1": y1,
+            "x2": x2,
+            "y2": y2,
+            "w": max(1, x2 - x1),
+            "h": max(1, y2 - y1),
+        })
+    return boxes
+
+
+def guard_sam_box(
+    image_path: str,
+    box: Dict[str, int]
+) -> Tuple[bool, PixelColorResult, str]:
+    """
+    Guarded spatial perception check (Addendum 2.2 / Phase 6):
+    Validates a SAM 3.1 proposed bounding box with deterministic pixel analysis.
+    Requirement: The localized candidate box MUST contain a bright saturated LED blob.
+    Dim metal, unlit indicators, or chassis reflections are rejected.
+    """
+    bbox = [box["x1"], box["y1"], box["x2"], box["y2"]]
+    pixel_res = analyze_led_pixels(image_path, bounding_box=bbox)
+
+    # Verification: must have saturated illumination and detected color must not be off/unknown
+    is_bright_saturated = (
+        pixel_res.pixel_count_analyzed >= 10
+        and pixel_res.detected_color in ("amber", "green", "red")
+        and (pixel_res.saturation or 0.0) >= 0.20
+        and (pixel_res.brightness or 0.0) >= 0.25
+    )
+
+    if is_bright_saturated:
+        reason = f"Passed: Verified bright saturated {pixel_res.detected_color} LED ({pixel_res.pixel_count_analyzed}px, sat={pixel_res.saturation}, bri={pixel_res.brightness})"
+        return True, pixel_res, reason
+    else:
+        reason = f"Rejected: Candidate region does not contain a bright saturated LED (detected={pixel_res.detected_color}, valid_px={pixel_res.pixel_count_analyzed}, sat={pixel_res.saturation}, bri={pixel_res.brightness})"
+        return False, pixel_res, reason
+

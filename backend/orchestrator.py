@@ -10,6 +10,7 @@ Executes bounded agentic incident investigations:
 """
 
 import base64
+import os
 import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
@@ -81,9 +82,10 @@ class InvestigationOrchestrator:
         incident_id: str,
         image_paths: List[str],
         dispatcher: ToolDispatcher,
+        enable_sam: bool = False,
     ) -> Tuple[List[Dict[str, Any]], Optional[str], Optional[str]]:
         """
-        Runs deterministic pixel analysis followed by a Muse Spark vision observation call.
+        Runs perception step: deterministic physical pixel measurement + optional SAM localization + Muse Spark vision.
         Returns: (observations_list, detected_device_label, detected_color)
         """
         if not image_paths:
@@ -93,11 +95,68 @@ class InvestigationOrchestrator:
         model_read_label = None
         model_read_color = None
 
-        # 1. Deterministic Physical Pixel Analysis
         p1 = image_paths[0]
         p2 = image_paths[1] if len(image_paths) > 1 else None
 
-        pixel_res = evidence.analyze_led_pixels(p1, frame_b_path=p2)
+        # 1. Optional SAM 3.1 Guarded Localization Stage (Addendum 2.2 / Phase 6)
+        sam_box_used = None
+        pixel_res = None
+        if enable_sam or os.getenv("ENABLE_SAM", "false").lower() in ("true", "1"):
+            try:
+                sam_boxes, _ = self.client.sam_localize(p1, concept="LED", incident_id=incident_id)
+                if not sam_boxes:
+                    observations.append({
+                        "source_id": f"EV-IMG-{Path(p1).stem}-SAM",
+                        "type": "sam_localization",
+                        "status": "zero_match",
+                        "guard_result": "bypassed",
+                        "box_count": 0,
+                        "summary": "SAM 3.1 returned 0 candidate regions for concept 'LED'. Falling back to default region pixel analysis.",
+                    })
+                else:
+                    accepted_candidate = None
+                    for b in sam_boxes:
+                        passed, cand_pixel, guard_msg = evidence.guard_sam_box(p1, b)
+                        if passed and accepted_candidate is None:
+                            accepted_candidate = (b, cand_pixel, guard_msg)
+
+                    if accepted_candidate:
+                        b_used, p_used, g_msg = accepted_candidate
+                        sam_box_used = [b_used["x1"], b_used["y1"], b_used["x2"], b_used["y2"]]
+                        pixel_res = p_used
+                        sam_id = f"EV-IMG-{Path(p1).stem}-SAM"
+                        dispatcher.register_id(sam_id)
+                        observations.append({
+                            "source_id": sam_id,
+                            "type": "sam_localization",
+                            "status": "used",
+                            "guard_result": "passed",
+                            "bounding_box": sam_box_used,
+                            "detected_color": pixel_res.detected_color,
+                            "summary": f"SAM 3.1 localized LED candidate. Guard passed: verified bright saturated {pixel_res.detected_color} LED ({g_msg}).",
+                        })
+                    else:
+                        observations.append({
+                            "source_id": f"EV-IMG-{Path(p1).stem}-SAM",
+                            "type": "sam_localization",
+                            "status": "rejected",
+                            "guard_result": "failed",
+                            "candidate_count": len(sam_boxes),
+                            "summary": f"SAM 3.1 proposed {len(sam_boxes)} candidate regions, but all were rejected by pixel guard (no bright saturated illumination detected). Falling back to default region pixel analysis.",
+                        })
+            except Exception as e:
+                observations.append({
+                    "source_id": f"EV-IMG-{Path(p1).stem}-SAM-ERROR",
+                    "type": "sam_error",
+                    "summary": f"SAM localization encountered error: {str(e)}",
+                })
+
+        # 2. Deterministic Physical Pixel Analysis (using SAM box if guarded and verified, else default)
+        if pixel_res is None:
+            pixel_res = evidence.analyze_led_pixels(p1, bounding_box=sam_box_used, frame_b_path=p2)
+        elif p2:
+            pixel_res = evidence.analyze_led_pixels(p1, bounding_box=sam_box_used, frame_b_path=p2)
+
         img_source_id = f"EV-IMG-{Path(p1).stem}"
         dispatcher.register_id(img_source_id)
         if p2:
@@ -188,6 +247,7 @@ class InvestigationOrchestrator:
         user_text: str,
         image_paths: Optional[List[str]] = None,
         model_override: Optional[str] = None,
+        enable_sam: bool = False,
     ) -> Tuple[Diagnosis, VerificationResult, List[Dict[str, Any]]]:
         """
         Executes complete multi-turn investigation loop for an incident.
@@ -198,7 +258,7 @@ class InvestigationOrchestrator:
 
         # Step 0: Perception (Pixel analysis + Vision)
         record_audit_event(incident_id, step_number=0, event_type="incident_received", details={"user_text": user_text, "images": image_paths})
-        observations, vision_label, measured_color = self._analyze_images(incident_id, image_paths, dispatcher)
+        observations, vision_label, measured_color = self._analyze_images(incident_id, image_paths, dispatcher, enable_sam=enable_sam)
         record_audit_event(incident_id, step_number=0, event_type="perception_completed", details={"observations": observations})
 
         # Step 1: Device and Bay Resolution
@@ -407,6 +467,7 @@ class InvestigationOrchestrator:
         resolved_device: Optional[str],
         resolved_bay: Optional[str],
         dispatcher: ToolDispatcher,
+
         messages: List[Dict[str, Any]],
         simulated_execution_verified: bool,
         step: int,

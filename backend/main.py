@@ -66,9 +66,103 @@ def _verify_approver_token(request: Request) -> None:
         )
 
 
+# ---------------------------------------------------------------------------
+# Public Demo Safety & Cost Controls (Phase 6, Part B2)
+# ---------------------------------------------------------------------------
+import sqlite3
+import time
+from collections import defaultdict
+
+SESSION_LIVE_RUNS: Dict[str, int] = defaultdict(int)
+
+
+def get_24h_spend_usd() -> float:
+    """Computes total live API spend recorded in the usage ledger over the last 24h."""
+    try:
+        conn = sqlite3.connect("data/infrasight.db")
+        c = conn.cursor()
+        c.execute(
+            "SELECT COALESCE(SUM(estimated_cost_usd), 0.0) FROM usage_ledger WHERE timestamp >= datetime('now', '-1 day') AND is_replay = 0"
+        )
+        row = c.fetchone()
+        conn.close()
+        return float(row[0]) if row and row[0] is not None else 0.0
+    except Exception:
+        return 0.0
+
+
+def verify_live_safety_guardrails(
+    mode: str,
+    request: Request,
+    has_file_uploads: bool = False,
+    provided_password: Optional[str] = None,
+) -> None:
+    """
+    Enforces production demo safety controls:
+    1. LIVE_PASSWORD gating for live model execution and file uploads.
+    2. Global daily spend cap ($5.00 default).
+    3. Per-session live investigation quota (3 runs max).
+    Replay mode operates unrestricted and consumes zero live tokens.
+    """
+    live_password_required = os.getenv("LIVE_PASSWORD", "").strip()
+
+    # 1. LIVE_PASSWORD gating
+    if live_password_required and (mode == "live" or has_file_uploads):
+        auth_header = request.headers.get("X-Live-Password") or request.headers.get("Authorization", "")
+        token = auth_header[7:].strip() if auth_header.startswith("Bearer ") else auth_header.strip()
+        pwd = (provided_password or token).strip()
+        if pwd != live_password_required:
+            raise HTTPException(
+                status_code=403,
+                detail="Forbidden: Live API execution and custom file uploads require a valid LIVE_PASSWORD. Replay mode is available unrestricted.",
+            )
+
+    # Replay mode is zero spend and unrestricted
+    if mode != "live":
+        return
+
+    # 2. Daily Spend Cap ($5.00 default)
+    daily_cap = float(os.getenv("DAILY_SPEND_CAP_USD", "5.0"))
+    current_spend = get_24h_spend_usd()
+    if current_spend >= daily_cap:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Daily live API spend cap of ${daily_cap:.2f} reached (24h live spend: ${current_spend:.4f}). Live mode is temporarily paused to prevent unexpected charges. Please use Replay mode.",
+        )
+
+    # 3. Per-Session Quota (Max 3 live investigations)
+    client_host = request.client.host if request.client else "anonymous"
+    session_id = request.headers.get("X-Session-ID") or client_host
+    max_session_live = int(os.getenv("MAX_SESSION_LIVE_RUNS", "3"))
+    if SESSION_LIVE_RUNS[session_id] >= max_session_live:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Per-session limit of {max_session_live} live investigations reached for session '{session_id}'. Please switch to Replay mode.",
+        )
+    SESSION_LIVE_RUNS[session_id] += 1
+
+
+def cleanup_old_uploads(max_age_seconds: int = 600) -> int:
+    """Auto-deletes user uploaded image files older than max_age_seconds (default 10 mins)."""
+    now = time.time()
+    deleted = 0
+    if not UPLOAD_DIR.exists():
+        return 0
+    for p in UPLOAD_DIR.glob("*"):
+        if p.is_file():
+            try:
+                if now - p.stat().st_mtime > max_age_seconds:
+                    p.unlink()
+                    deleted += 1
+            except Exception:
+                pass
+    return deleted
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     init_db()
+    cleanup_old_uploads()
     yield
 
 
@@ -163,17 +257,28 @@ def get_usage_summary_endpoint() -> Dict[str, Any]:
 
 @app.post("/incidents", status_code=status.HTTP_201_CREATED)
 async def create_incident(
+    request: Request,
     description: str = Form(..., description="Technician report or alert description"),
     images: List[UploadFile] = File(default=[], description="Chassis or LED indicator photos"),
     image_paths: Optional[str] = Form(default=None, description="Pre-existing image paths (JSON list)"),
-    mode: str = Form(default="live", description="Execution mode: 'live' or 'replay'"),
+    mode: str = Form(default="replay", description="Execution mode: 'replay' (default) or 'live'"),
+    live_password: Optional[str] = Form(default=None, description="Password for live demo mode or uploads"),
 ) -> Dict[str, Any]:
     """
     Creates a new troubleshooting incident with description and optional hardware photos.
-    Validates file format and enforces 10MB size limit.
+    Validates file format, enforces 10MB size limit, and verifies demo safety guardrails.
     """
     if not description or not description.strip():
         raise HTTPException(status_code=422, detail="Incident description cannot be empty.")
+
+    cleanup_old_uploads()
+    has_uploaded_files = any(img.filename for img in images) if images else False
+    verify_live_safety_guardrails(
+        mode=mode,
+        request=request,
+        has_file_uploads=has_uploaded_files,
+        provided_password=live_password,
+    )
 
     incident_id = f"INC-{uuid.uuid4().hex[:8].upper()}"
     saved_image_paths: List[str] = []
@@ -263,16 +368,25 @@ def _run_investigation_worker(incident_id: str, orchestrator: InvestigationOrche
 def start_investigation(
     incident_id: str,
     background_tasks: BackgroundTasks,
+    request: Request,
     sync: bool = Query(default=False, description="Run synchronously if True (returns full diagnosis)"),
-    mode: str = Query(default="live", description="Execution mode: 'live' or 'replay'"),
+    mode: str = Query(default="replay", description="Execution mode: 'replay' (default) or 'live'"),
+    live_password: Optional[str] = Query(default=None, description="Password for live demo mode"),
 ) -> Dict[str, Any]:
     """
     Kicks off agentic evidence-first investigation.
     Runs asynchronously in background by default, returning immediately.
+    Enforces spend cap, per-session quotas, and replay-by-default.
     """
     inc = get_incident(incident_id)
     if not inc:
         raise HTTPException(status_code=404, detail=f"Incident '{incident_id}' not found.")
+
+    verify_live_safety_guardrails(
+        mode=mode,
+        request=request,
+        provided_password=live_password,
+    )
 
     is_replay = (mode == "replay")
     client = MetaClient(replay_mode=is_replay, mock_mode=is_replay)

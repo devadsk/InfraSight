@@ -59,6 +59,44 @@ In strict compliance with the **New Work Only** rule of the Meta Global AI Devel
 
 ## 3. Project Architecture
 
+```mermaid
+flowchart TD
+    subgraph Input["Input Layer"]
+        A["Technician Freeform Report"]
+        B["Hardware Chassis Images (1-2 Frames)"]
+    end
+
+    subgraph Perception["Multimodal Perception Engine"]
+        B --> C["SAM 3.1 Spatial Localizer\n(/v1/responses)"]
+        C -->|Candidate Bounding Box| D["Deterministic HSV Pixel Analysis\n(Hue, Brightness, Saturation)"]
+        B --> D
+        D -->|Bright Saturated Blob Guard| E["Verified Image Evidence\nEV-IMG-...-SAM"]
+        B --> F["Muse Spark 1.3 Vision Call\n(/v1/chat/completions)"]
+        D -.->|Contradiction Detection| F
+    end
+
+    subgraph Orchestrator["Agentic Investigation Loop"]
+        A --> G["Device & Bay Resolver"]
+        F --> G
+        G --> H["Multi-Turn Tool Orchestrator\n(Muse Spark 1.3)"]
+        H <-->|Class A Reads| I["Authoritative Tools\n(Telemetry, Logs, Manuals)"]
+    end
+
+    subgraph Safety["Safety, Policy & Verifier"]
+        H --> J["Deterministic Citation Verifier"]
+        H --> K["Server-Side Policy Engine\n(Class A, B, C Allowlist)"]
+        K -->|Class B Propose Action| L{"Supervisor Approval\n(POST /actions/approve)"}
+        L -->|Approved| M["Simulated Execution Engine\n(Telemetry Verification)"]
+        K -->|Class C Prohibited Action| N["Permanent Policy Denial"]
+    end
+
+    subgraph Output["Output & Audit"]
+        J --> O["Structured Diagnosis\n(6 Master Spec Statuses)"]
+        H --> P["SQLite Usage Ledger & Audit Trail"]
+        O --> Q["Interactive Streamlit UI & Markdown Report"]
+    end
+```
+
 ```text
 InfraSight/
 ├── backend/
@@ -67,6 +105,7 @@ InfraSight/
 │   ├── executor.py          # Simulated execution engine with post-action verification
 │   ├── orchestrator.py      # Multi-turn investigation loop with resumable investigations
 │   ├── policy.py            # Security policy engine (Class A, Class B, Class C)
+│   ├── policy_stress.py     # Scripted adversarial model runner (5 Class C denials)
 │   ├── tools.py             # Authoritative tool dispatcher & parameter validation
 │   ├── verifier.py          # Deterministic verifier & grounding constraint enforcer
 │   ├── storage.py           # SQLite persistence for audit trail, usage ledger, sim state
@@ -81,32 +120,34 @@ InfraSight/
 │   ├── telemetry.json       # SMART metrics with stable IDs EV-TEL-...
 │   ├── events.json          # Syslog events with stable IDs EV-LOG-... (includes prompt injection test)
 │   ├── diagnostics.json     # Simulated diagnostic outcomes (confirm, contradict, timeout, post-replace)
-│   ├── scenarios.json       # 12 Ground Truth benchmark scenarios
+│   ├── scenarios.json       # 13 Ground Truth benchmark scenarios
 │   ├── manuals/             # 15 technical manual sections MAN-...
 │   └── images/              # Generated drive bay panels & user photo directory
-├── tests/
-│   └── test_evidence.py     # 17 unit tests verifying lookups, grounding, and pixel analysis
-├── scripts/
-│   ├── generate_data.py     # Seeded data generator (reproducible with fixed time anchor)
-│   ├── run_local.py         # Local runner: starts FastAPI + Streamlit concurrently
-│   ├── record_replay.py     # Records & verifies offline replay cache (eval/replay/)
-│   ├── capture_screenshots.py # Playwright screenshot capture for docs/screenshots/
-│   ├── run_eval.py          # Benchmark evaluation harness (16 scenarios, strict rubric)
-│   ├── test_meta_api.py     # Live API verification suite
-│   └── test_sam_pillow_images.py # SAM 3.1 gate testing on generated renders
 ├── tests/
 │   ├── test_evidence.py     # Evidence engine unit tests (lookups, grounding, pixel analysis)
 │   ├── test_validation.py   # Schema and referential integrity tests
 │   ├── test_phase3_orchestrator.py # Orchestrator unit tests
 │   ├── test_phase4_api.py   # API endpoint, policy, approval, executor tests
-│   └── test_phase5_ui.py    # Streamlit UI & replay mode tests
+│   ├── test_phase5_ui.py    # Streamlit UI & replay mode tests
+│   ├── test_policy_stress.py # Scripted policy engine stress tests (5 adversarial cases)
+│   ├── test_sam_stage.py    # SAM 3.1 guarded localization tests (used, rejected, zero-match)
+│   └── test_demo_safety.py  # Spend cap ($5), session quota (3 runs), LIVE_PASSWORD tests
 ├── eval/
-│   └── replay/              # Curated offline cache (19 verified response files, 5 hero scenarios)
+│   ├── replay/              # Curated offline cache (19 verified response files, 5 hero scenarios)
+│   └── results_baseline.json # Frozen baseline evaluation results for regression checking
 ├── docs/
 │   ├── SPEC.md              # Master engineering specification
 │   ├── SPEC_ADDENDUM_v2.md  # Official rules & architectural addendum
 │   ├── API_NOTES.md         # Live Meta Model API latency, tokens, cost & marker benchmarks
-│   └── sam_samples/         # Raw captured SAM 3.1 JSON responses and coordinate markers
+│   ├── EVAL_LOG.md          # Multi-run evaluation logs and prompt freeze record
+│   ├── SAM_RESULTS.md       # SAM 3.1 guarded spatial awareness evaluation report
+│   ├── DEPLOY.md            # Container deployment guide (Render, Fly.io, Railway)
+│   ├── DEMO_SCRIPT.md       # 3-minute video walkthrough & 45s social media script
+│   ├── SUBMISSION.md        # Official Hackathon submission text (Indie Developer Track)
+│   ├── sam_samples/         # Raw captured SAM 3.1 JSON responses and coordinate markers
+│   └── screenshots/         # Automated headless browser screenshot gallery
+├── Dockerfile               # Production multi-stage container specification
+├── .dockerignore
 ├── requirements.txt
 ├── .env.example
 ├── .gitignore
@@ -138,12 +179,12 @@ InfraSight/
 
 ### Running Tests
 
-Run the full deterministic test suite (70 tests, no live API calls):
+Run the full deterministic test suite (82 tests, zero live API calls):
 ```bash
 python -m pytest tests/ -v
 ```
 
-Expected output: **70 passed** across 5 test files.
+Expected output: **82 passed** across 8 test files.
 
 ### Running the Streamlit UI (Offline Replay Mode — no API key needed)
 

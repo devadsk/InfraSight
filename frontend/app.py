@@ -156,10 +156,12 @@ with st.sidebar:
     )
     st.session_state.execution_mode = "replay" if "Replay" in mode_option else "live"
 
+    live_pwd = ""
     if st.session_state.execution_mode == "replay":
         st.caption("⚡ Offline Replay: Works with zero tokens, no latency, and no API key.")
     else:
-        st.caption("🌐 Live Mode: Calls Meta Model API (`muse-spark-1.3`).")
+        st.caption("🌐 Live Mode: Calls Meta Model API (`muse-spark-1.3`). Subject to spend cap ($5/day) & session quota (3 runs).")
+        live_pwd = st.text_input("Live Mode Passcode (LIVE_PASSWORD):", type="password", key="demo_live_pwd", help="Required if host deployed with LIVE_PASSWORD.")
 
     st.markdown("---")
 
@@ -202,8 +204,19 @@ with st.sidebar:
             for up in uploads[:3]:
                 b = up.read()
                 uploaded_files_data.append((up.name, b, up.type))
+            if not live_pwd:
+                live_pwd = st.text_input("Upload Passcode (LIVE_PASSWORD):", type="password", key="demo_upload_pwd")
 
     st.markdown("---")
+
+    # Public Demo Guardrails Notice
+    st.info(
+        "ℹ️ **Public Demo Controls (Simulated Environment):**\n"
+        "- Default: **Offline Replay Mode** with zero token consumption.\n"
+        "- Live Model Cap: **$5.00/day** global spend limit (ledger-enforced).\n"
+        "- Per-Session Limit: **3 live investigations**.\n"
+        "- Custom uploads auto-delete after processing."
+    )
 
     # Start Investigation Button
     if st.button("🚀 Start Investigation", type="primary", use_container_width=True):
@@ -226,6 +239,7 @@ with st.sidebar:
                         image_files=file_payload if not existing_paths else None,
                         image_paths=existing_paths,
                         mode=st.session_state.execution_mode,
+                        live_password=live_pwd if live_pwd else None,
                     )
                     inc_id = inc_resp["incident_id"]
                     st.session_state.current_incident_id = inc_id
@@ -235,6 +249,7 @@ with st.sidebar:
                         incident_id=inc_id,
                         sync=False,
                         mode=st.session_state.execution_mode,
+                        live_password=live_pwd if live_pwd else None,
                     )
                     st.success(f"Investigation initialized: `{inc_id}`")
                     st.rerun()
