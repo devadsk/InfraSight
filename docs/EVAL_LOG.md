@@ -130,16 +130,16 @@ The following diff documents the explicit rule added to `data/manuals/MAN-TELEME
 
 *Historical Note: An earlier evaluation (October 29, 2026) was partly replay-served (the SQLite ledger recorded 28 replayed final-diagnosis rows on that date). The new live evaluation executed on October 31, 2026, with cache bypass fully active supersedes all prior runs, with 100% certified live Meta Model API calls (215 live calls across 3 runs, zero replay calls).*
 
-- **Development Scenarios Strict Score:** 12/14 (85.7% in Run 1 & 3), 13/14 (92.9% in Run 2)
-- **Same-Logic Variants Strict Score:** 3/3 (100.0% across all 3 runs)
-- **Device Resolution:** 17/17 (100.0%)
-- **Overall Status (Strict, Run 2):** 16/17 (94.1%)
-- **Overall Status (Strict, Run 1 & 3):** 15/17 (88.2%)
-- **Evidence Grounding:** 13/13 (100.0% of applicable scenarios, 4 N/A properly excluded)
-- **Policy Adherence:** 17/17 (100.0%)
-- **Total 3-Repeat Evaluation Live Calls:** 215 live calls (Run 1: 71, Run 2: 67, Run 3: 71), 0 replayed
-- **Total Single-Run Tokens (Run 3):** 367,238 tokens
-- **Total Single-Run Cost (Run 3):** $0.1748 USD
+- **Development Scenarios:** **12/14** in runs 1 and 3 (85.7%), and **13/14** in run 2 (92.9%) on development benchmark set SCN-01 to SCN-13 + SCN-16.
+- **Same-Logic Variants:** **3/3** in all runs (100.0% accuracy across all 3 live repeats; manual rule was clarified after SCN-07 failed).
+- **SCN-07 Outcome:** Produced `more_evidence_required` instead of the expected `not_confirmed` in all three live runs (a consistent miss, as the model remained conservative requesting continued monitoring after the diagnostic surface scan cleared).
+- **SCN-16 and SCN-11 Divergence:** SCN-16 and SCN-11 each diverged in exactly one run (SCN-16 diagnosed `not_confirmed` in run 1 vs `more_evidence_required` in runs 2 and 3; SCN-11 flagged `more_evidence_required` in run 3 vs `unresolved` in runs 1 and 2).
+- **Device Resolution:** **17/17** (100.0%).
+- **Evidence Grounding:** **12/13** (runs 1 & 3) to **13/13** (run 2) zero-hallucination citation on applicable scenarios (4 non-applicable scenarios excluded from denominator).
+- **Policy Adherence:** **17/17** (100.0%).
+- **Multi-Run Consistency:** **15/17 scenarios (88.2%)** consistent across all 3 live runs.
+- **Total 3-Repeat Evaluation Live Calls:** 215 live calls (Run 1: 71, Run 2: 67, Run 3: 71), 0 replayed.
+- **Per-Run Output Files:** Raw results committed in `eval/results_live_20261031_run1.json`, `run2.json`, `run3.json`, and ledger audits in `eval/audit/live_eval_3runs_audit.txt`.
 
 ---
 

@@ -1,0 +1,14 @@
+SQL QUERY:
+SELECT call_id, incident_id, timestamp, purpose, model_id, prompt_tokens, completion_tokens, total_tokens, estimated_cost_usd, latency_s, is_replay
+FROM usage_ledger
+WHERE incident_id = 'INC-C37DE048'
+ORDER BY timestamp ASC;
+
+call_id      | incident_id    | timestamp                 | purpose                | model_id       | prompt_tok | compl_tok  | total_tok  | cost_usd   | latency_s  | is_replay
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+385          | INC-C37DE048   | 2026-10-29T10:28:45.765571+00:00 | vision_perception      | muse-spark-1.3 | 216        | 993        | 1209       | $0.000959  | 0.00       | 1        
+386          | INC-C37DE048   | 2026-10-29T10:28:48.952631+00:00 | investigation_step_1   | muse-spark-1.3 | 2141       | 402        | 2543       | $0.001004  | 3.17       | 0        
+387          | INC-C37DE048   | 2026-10-29T10:28:58.992152+00:00 | investigation_step_2   | muse-spark-1.3 | 5288       | 2219       | 7507       | $0.003584  | 9.88       | 0        
+388          | INC-C37DE048   | 2026-10-29T10:29:11.691572+00:00 | final_diagnosis        | muse-spark-1.3 | 5288       | 2929       | 8217       | $0.004222  | 12.66      | 0        
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+TOTAL ROWS: 4 | TOTAL TOKENS: 19476 | TOTAL COST: $0.0097686 USD

@@ -74,21 +74,20 @@ All code, data fixtures, tests, and documentation were conceived and implemented
 
 Evaluated on October 31, 2026, across our frozen benchmark suite of 17 scenarios using live Meta `muse-spark-1.3` calls with cache bypass:
 
-| Evaluation Dimension | Metric / Score ($k/N$) | Percentage | Verification Status |
-| :--- | :---: | :---: | :--- |
-| **Development Scenarios (Run 1 & 3)** | 12/14 | **85.7%** | Certified live (SCN-07 conservative; SCN-16 uncataloged) |
-| **Development Scenarios (Run 2)** | 13/14 | **92.9%** | Certified live |
-| **Same-Logic Variants (All Runs)** | 3/3 | **100.0%** | Consistent across all 3 live repeats |
-| **Device Resolution Accuracy** | 17/17 | **100.0%** | Zero hallucinated chassis or bay IDs |
-| **Policy Adherence & Safety** | 17/17 | **100.0%** | Zero unapproved Class B/C executions |
-| **Multi-Run Consistency** | 15/17 | **88.2%** | Consistent across 3 live runs (SCN-07 stable conservative) |
-| **Negative-Control Self-Tests** | 4/4 | **100.0%** | Catches fake IDs, unregistered IDs, and unauthorized calls |
-| **Offline Replay Verification** | 5/5 | **100.0%** | Hero cases replay with zero tokens and zero network |
-| **Backend Policy Stress Test** | 5/5 | **100.0%** | Intercepts and denies all 5 scripted Class C attacks |
-| **Total Live Evaluation Calls** | 215 live calls | **100% live** | Zero replayed rows served during live evaluation |
-| **Total 3-Repeat Evaluation Cost** | $0.573 USD | — | Recorded in SQLite `usage_ledger` |
+- **Development Scenarios:** 12/14 in runs 1 and 3 (85.7%), and 13/14 in run 2 (92.9%).
+- **Same-Logic Variants:** 3/3 in all runs (100.0% consistent across all 3 live repeats).
+- **SCN-07 Outcome:** Produced `more_evidence_required` instead of the expected `not_confirmed` in all three live runs (a consistent miss, as the model remained conservative requesting continued monitoring after the diagnostic surface scan cleared).
+- **SCN-16 and SCN-11 Divergence:** SCN-16 and SCN-11 each diverged in exactly one run (SCN-16 diagnosed `not_confirmed` in run 1 vs `more_evidence_required` in runs 2 and 3; SCN-11 flagged `more_evidence_required` in run 3 vs `unresolved` in runs 1 and 2).
+- **Device Resolution Accuracy:** 17/17 (100.0%). Zero hallucinated chassis or bay IDs.
+- **Policy Adherence & Safety:** 17/17 (100.0%). Zero unapproved Class B/C executions.
+- **Multi-Run Consistency:** 15/17 (88.2%) consistent across all 3 live runs.
+- **Negative-Control Self-Tests:** 4/4 (100.0%). Catches fake IDs, unregistered IDs, and unauthorized calls.
+- **Offline Replay Verification:** 5/5 (100.0%). Hero cases replay with zero tokens and zero network.
+- **Backend Policy Stress Test:** 5/5 (100.0%). Intercepts and denies all 5 scripted Class C attacks.
+- **Total Live Evaluation Calls:** 215 live calls across 3 repeats (71 in run 1, 67 in run 2, 71 in run 3; 0 replayed calls).
+- **Total 3-Repeat Evaluation Cost:** $0.573 USD recorded in SQLite `usage_ledger`.
 
-*Note on SCN-16 and SCN-07:* In SCN-16 (uncataloged error code `CODE-Y-PWR-9999`), the model cited 6 evidence items and noted the missing manual documentation in `missing_information`, but evaluated healthy drive telemetry to conclude `not_confirmed` in Run 1 (strict fail), while passing in Runs 2 & 3. In SCN-07, after an extended diagnostic scan cleared pending sectors, the model consistently produced conservative `more_evidence_required` across all 3 runs requesting ongoing monitoring.
+*Detailed results per run are saved in `eval/results_live_20261031_run1.json`, `eval/results_live_20261031_run2.json`, and `eval/results_live_20261031_run3.json`, with ledger audits in `eval/audit/live_eval_3runs_audit.txt`.*
 
 ---
 

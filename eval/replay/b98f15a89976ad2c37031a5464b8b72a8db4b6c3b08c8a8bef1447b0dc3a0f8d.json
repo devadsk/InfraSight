@@ -60,7 +60,8 @@
       "cached_tokens": 0
     }
   },
-  "recorded_at": "2026-10-31T12:35:00.720715+00:00",
+  "recorded_at": "2026-10-31T12:35:30Z",
   "git_commit": "f957b3ed39b64deaf0aa15f8ae5cda4f9c96f53c",
-  "model_id": "muse-spark-1.3"
+  "model_id": "muse-spark-1.3",
+  "provenance_status": "frozen_live_recording"
 }

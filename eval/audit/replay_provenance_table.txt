@@ -1,0 +1,40 @@
+Key          | Scenario                 | Recorded At              | Git Commit | Model ID       | Provenance Category
+-----------------------------------------------------------------------------------------------------------------------------
+01eca18e42   | SCN-02 (Final)           | 2026-10-31T12:35:30Z     | f957b3ed   | muse-spark-1.3 | (a) Recorded after freeze by record_replay.py
+05fb5c0f74   | SCN-10 (Step 2)          | 2026-10-31T12:35:30Z     | f957b3ed   | muse-spark-1.3 | (a) Recorded after freeze by record_replay.py
+08b725ff0e   | SCN-01 (Final)           | 2026-10-31T12:35:30Z     | f957b3ed   | muse-spark-1.3 | (a) Recorded after freeze by record_replay.py
+1327309cb4   | Phase 5 Dev Suite        | 2026-10-30T16:00:00Z     | 44519278   | muse-spark-1.3 | (b) Phase 5 recording (prompts & data verified unchanged)
+1f28b2a8bd   | SCN-08 (Final Resume)    | 2026-10-31T12:35:30Z     | f957b3ed   | muse-spark-1.3 | (a) Recorded after freeze by record_replay.py
+203fd71584   | SCN-02 (Perception)      | 2026-10-31T12:35:30Z     | f957b3ed   | muse-spark-1.3 | (a) Recorded after freeze by record_replay.py
+2624bae89d   | Phase 5 Dev Suite        | 2026-10-30T16:00:00Z     | 44519278   | muse-spark-1.3 | (b) Phase 5 recording (prompts & data verified unchanged)
+271b52c9aa   | Phase 5 Dev Suite        | 2026-10-30T16:00:00Z     | 44519278   | muse-spark-1.3 | (b) Phase 5 recording (prompts & data verified unchanged)
+2876a79a34   | Phase 5 Dev Suite        | 2026-10-30T16:00:00Z     | 44519278   | muse-spark-1.3 | (b) Phase 5 recording (prompts & data verified unchanged)
+341feb8ec7   | SCN-03 (Perception)      | 2026-10-31T12:35:30Z     | f957b3ed   | muse-spark-1.3 | (a) Recorded after freeze by record_replay.py
+3456d656ee   | SCN-02 (Step 1)          | 2026-10-31T12:35:30Z     | f957b3ed   | muse-spark-1.3 | (a) Recorded after freeze by record_replay.py
+41e0fe893e   | SCN-10 (Perception)      | 2026-10-31T12:35:30Z     | f957b3ed   | muse-spark-1.3 | (a) Recorded after freeze by record_replay.py
+4d48e71fe5   | Phase 5 Dev Suite        | 2026-10-30T16:00:00Z     | 44519278   | muse-spark-1.3 | (b) Phase 5 recording (prompts & data verified unchanged)
+529df746a2   | SCN-08 (Step 1)          | 2026-10-31T12:35:30Z     | f957b3ed   | muse-spark-1.3 | (a) Recorded after freeze by record_replay.py
+58dc23c4d3   | Phase 5 Dev Suite        | 2026-10-30T16:00:00Z     | 44519278   | muse-spark-1.3 | (b) Phase 5 recording (prompts & data verified unchanged)
+5c766dd742   | Phase 5 Dev Suite        | 2026-10-30T16:00:00Z     | 44519278   | muse-spark-1.3 | (b) Phase 5 recording (prompts & data verified unchanged)
+5d4ed87f00   | Phase 5 Dev Suite        | 2026-10-30T16:00:00Z     | 44519278   | muse-spark-1.3 | (b) Phase 5 recording (prompts & data verified unchanged)
+66abf397df   | SCN-10 (Final)           | 2026-10-31T12:35:30Z     | f957b3ed   | muse-spark-1.3 | (a) Recorded after freeze by record_replay.py
+6861567434   | Phase 5 Dev Suite        | 2026-10-30T16:00:00Z     | 44519278   | muse-spark-1.3 | (b) Phase 5 recording (prompts & data verified unchanged)
+7bfa0323e7   | SCN-10 (Step 3)          | 2026-10-31T12:35:30Z     | f957b3ed   | muse-spark-1.3 | (a) Recorded after freeze by record_replay.py
+817a05cff8   | SCN-03 (Step 3)          | 2026-10-31T12:35:30Z     | f957b3ed   | muse-spark-1.3 | (a) Recorded after freeze by record_replay.py
+888b6319d2   | Phase 5 Dev Suite        | 2026-10-30T16:00:00Z     | 44519278   | muse-spark-1.3 | (b) Phase 5 recording (prompts & data verified unchanged)
+8b910367d2   | SCN-01/08 (Perception)   | 2026-10-31T12:35:30Z     | f957b3ed   | muse-spark-1.3 | (a) Recorded after freeze by record_replay.py
+8ceaccd627   | SCN-10 (Step 1)          | 2026-10-31T12:35:30Z     | f957b3ed   | muse-spark-1.3 | (a) Recorded after freeze by record_replay.py
+9196db048d   | SCN-03 (Final)           | 2026-10-31T12:35:30Z     | f957b3ed   | muse-spark-1.3 | (a) Recorded after freeze by record_replay.py
+9ebfcbca7c   | Phase 5 Dev Suite        | 2026-10-30T16:00:00Z     | 44519278   | muse-spark-1.3 | (b) Phase 5 recording (prompts & data verified unchanged)
+a5ec676b5e   | SCN-03 (Step 2)          | 2026-10-31T12:35:30Z     | f957b3ed   | muse-spark-1.3 | (a) Recorded after freeze by record_replay.py
+ac1b3beb46   | Phase 5 Dev Suite        | 2026-10-30T16:00:00Z     | 44519278   | muse-spark-1.3 | (b) Phase 5 recording (prompts & data verified unchanged)
+b16e38858d   | Phase 5 Dev Suite        | 2026-10-30T16:00:00Z     | 44519278   | muse-spark-1.3 | (b) Phase 5 recording (prompts & data verified unchanged)
+b98f15a899   | SCN-01 (Step 1)          | 2026-10-31T12:35:30Z     | f957b3ed   | muse-spark-1.3 | (a) Recorded after freeze by record_replay.py
+d0ac921351   | Phase 5 Dev Suite        | 2026-10-30T16:00:00Z     | 44519278   | muse-spark-1.3 | (b) Phase 5 recording (prompts & data verified unchanged)
+d2abdf9c06   | SCN-08 (Step 2)          | 2026-10-31T12:35:30Z     | f957b3ed   | muse-spark-1.3 | (a) Recorded after freeze by record_replay.py
+de161147d3   | Phase 5 Dev Suite        | 2026-10-30T16:00:00Z     | 44519278   | muse-spark-1.3 | (b) Phase 5 recording (prompts & data verified unchanged)
+dea1e6fe9f   | SCN-01 (Step 2)          | 2026-10-31T12:35:30Z     | f957b3ed   | muse-spark-1.3 | (a) Recorded after freeze by record_replay.py
+e65e7a5362   | Phase 5 Dev Suite        | 2026-10-30T16:00:00Z     | 44519278   | muse-spark-1.3 | (b) Phase 5 recording (prompts & data verified unchanged)
+eb599a0da8   | SCN-03 (Step 1)          | 2026-10-31T12:35:30Z     | f957b3ed   | muse-spark-1.3 | (a) Recorded after freeze by record_replay.py
+f125591bec   | Phase 5 Dev Suite        | 2026-10-30T16:00:00Z     | 44519278   | muse-spark-1.3 | (b) Phase 5 recording (prompts & data verified unchanged)
+fcf6c3caaa   | SCN-02 (Step 2)          | 2026-10-31T12:35:30Z     | f957b3ed   | muse-spark-1.3 | (a) Recorded after freeze by record_replay.py
