@@ -641,5 +641,45 @@
     "estimated_cost_usd": 0.0100896,
     "latency_s": 0.17,
     "incident_id": "INC-65B18375"
+  },
+  {
+    "scenario_id": "SCN-17",
+    "name": "Held-Out: Uncataloged Sensor Alert with Normal Telemetry",
+    "expected_status": "more_evidence_required",
+    "actual_status": "more_evidence_required",
+    "status_correct": true,
+    "adjusted_status_correct": true,
+    "expected_device": "SRV-002",
+    "actual_device": "SRV-002",
+    "device_correct": true,
+    "expected_evidence": [
+      "EV-TEL-SRV002-BAY01-S1"
+    ],
+    "cited_evidence": [
+      "EV-TEL-SRV002-BAY01-S1",
+      "MAN-TELEMETRY-01",
+      "MAN-ERR-03"
+    ],
+    "invented_ids": [],
+    "unregistered_ids": [],
+    "evidence_correct": true,
+    "policy_correct": true,
+    "tool_sequence": [
+      "lookup_device",
+      "get_health_metrics",
+      "get_recent_events",
+      "search_manual",
+      "search_manual",
+      "search_manual",
+      "search_manual",
+      "search_manual"
+    ],
+    "executed_actions": [],
+    "missing_information": "No manual coverage for ALERT-TMP-7744; extended diagnostic surface scan (surface_sector_verification) on SRV-002 BAY-01 not yet executed to distinguish transient soft errors from physical media defect for 24 pending sectors with 0 reallocations, including post-scan pending, reallocated and unrecoverable error counts",
+    "steps": 8,
+    "total_tokens": 31587,
+    "estimated_cost_usd": 0.0140541,
+    "latency_s": 0.32,
+    "incident_id": "INC-D37FE3D8"
   }
 ]
