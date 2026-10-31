@@ -5,7 +5,7 @@ WORKDIR /app
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PORT=8501 \
+    PORT=7860 \
     BACKEND_PORT=8000 \
     STREAMLIT_SERVER_HEADLESS=true \
     STREAMLIT_SERVER_ENABLE_CORS=false \
@@ -18,17 +18,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends curl bash && rm
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application source code
-COPY . .
+# Create non-root user with UID 1000 for Hugging Face Spaces compatibility
+RUN useradd -m -u 1000 user
 
-# Ensure runtime directories exist
-RUN mkdir -p data/images/uploads eval/cache/meta_api eval/replay docs/screenshots
+# Copy application source code
+COPY --chown=user:user . .
+
+# Ensure runtime directories exist and have proper permissions for user 1000
+RUN mkdir -p data/images/uploads eval/cache/meta_api eval/replay docs/screenshots && \
+    chown -R user:user /app && \
+    chmod -R 775 /app/data /app/eval
 
 # Ensure script execution permissions
 RUN chmod +x scripts/start.sh
 
-# Expose unified ports
-EXPOSE 8000 8501
+# Switch to non-root user
+USER user
+
+# Expose unified ports (7860 for HF Spaces / Streamlit)
+EXPOSE 7860 8000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -f http://127.0.0.1:8000/health || exit 1

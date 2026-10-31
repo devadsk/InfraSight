@@ -37,11 +37,27 @@ class MetaClient:
         
         env_mock = os.getenv("MOCK_MODE", "false").lower() in ("true", "1", "yes")
         env_replay = os.getenv("REPLAY_MODE", "false").lower() in ("true", "1", "yes")
+        env_bypass = os.getenv("BYPASS_CACHE", "false").lower() in ("true", "1", "yes")
         self.mock_mode = mock_mode if mock_mode is not None else env_mock
         self.replay_mode = replay_mode if replay_mode is not None else env_replay
+        self.bypass_cache = env_bypass
+
+    @staticmethod
+    def _normalize_content(obj: Any) -> Any:
+        import re
+        if isinstance(obj, str):
+            # Normalize variable incident IDs
+            s = re.sub(r"\b(?:INC-[A-Fa-f0-9]{6,}|(?:REC|TEST-REPLAY)-[A-Za-z0-9_-]+)\b", "<INCIDENT_ID>", obj)
+            return s
+        elif isinstance(obj, dict):
+            return {k: MetaClient._normalize_content(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [MetaClient._normalize_content(x) for x in obj]
+        return obj
 
     def _compute_cache_key(self, payload: Dict[str, Any]) -> str:
-        serialized = json.dumps(payload, sort_keys=True)
+        normalized = self._normalize_content(payload)
+        serialized = json.dumps(normalized, sort_keys=True)
         return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
 
     def chat_completion(
@@ -81,12 +97,13 @@ class MetaClient:
         replay_file = REPLAY_DIR / f"{cache_key}.json"
         cache_file = CACHE_DIR / f"{cache_key}.json"
 
-        # 1. Check replay directory, then cache directory
+        # 1. Check replay directory, then cache directory (unless bypass_cache is active)
         file_to_load = None
-        if replay_file.exists():
-            file_to_load = replay_file
-        elif cache_file.exists():
-            file_to_load = cache_file
+        if not getattr(self, "bypass_cache", False):
+            if replay_file.exists():
+                file_to_load = replay_file
+            elif cache_file.exists():
+                file_to_load = cache_file
 
         if file_to_load is not None:
             with open(file_to_load, "r", encoding="utf-8") as f:
@@ -177,35 +194,8 @@ class MetaClient:
         """
         from backend.evidence import parse_sam_markers
 
-        # 1. Check known recorded sample responses
-        img_name = Path(image_path).name.lower()
-        sample_map = {
-            "external_hard_disk.jpeg": "docs/sam_samples/real_photos_retry/call_1_external_hard_disk_LED_response.json",
-            "raspberrypi.jpg": "docs/sam_samples/real_photos_retry/call_3_Raspberrypi_LED_response.json",
-            "router.jpeg": "docs/sam_samples/real_photos_retry/call_5_router_LED_response.json",
-        }
-        known_sample = sample_map.get(img_name)
-        if known_sample and Path(known_sample).exists():
-            with open(known_sample, "r", encoding="utf-8") as sf:
-                sdata = json.load(sf)
-            text = ""
-            for item in sdata.get("output", []):
-                for c in item.get("content", []):
-                    if c.get("type") == "output_text":
-                        text += c.get("text", "")
-            boxes = parse_sam_markers(text)
-            record_usage(
-                purpose="sam_localization",
-                model_id="sam-3.1",
-                usage={"input_tokens": 0, "output_tokens": 0, "total_tokens": 0, "images_processed": 1},
-                incident_id=incident_id,
-                reasoning_effort=None,
-                latency_s=0.0,
-                is_replay=True,
-            )
-            return boxes, True
+        use_bypass = getattr(self, "bypass_cache", False)
 
-        # 2. Check general cache / replay
         payload = {
             "model": "sam-3.1",
             "concept": concept,
@@ -215,38 +205,89 @@ class MetaClient:
         replay_file = REPLAY_DIR / f"{cache_key}.json"
         cache_file = CACHE_DIR / f"{cache_key}.json"
 
-        file_to_load = None
-        if replay_file.exists():
-            file_to_load = replay_file
-        elif cache_file.exists():
-            file_to_load = cache_file
+        if not use_bypass:
+            # 1. Check known recorded sample responses
+            img_name = Path(image_path).name.lower()
+            sample_map = {
+                "external_hard_disk.jpeg": "docs/sam_samples/real_photos_retry/call_1_external_hard_disk_LED_response.json",
+                "raspberrypi.jpg": "docs/sam_samples/real_photos_retry/call_3_Raspberrypi_LED_response.json",
+                "router.jpeg": "docs/sam_samples/real_photos_retry/call_5_router_LED_response.json",
+            }
+            known_sample = sample_map.get(img_name)
+            if known_sample and Path(known_sample).exists():
+                with open(known_sample, "r", encoding="utf-8") as sf:
+                    sdata = json.load(sf)
+                text = ""
+                for item in sdata.get("output", []):
+                    for c in item.get("content", []):
+                        if c.get("type") == "output_text":
+                            text += c.get("text", "")
+                boxes = parse_sam_markers(text)
+                record_usage(
+                    purpose="sam_localization",
+                    model_id="sam-3.1",
+                    usage={"input_tokens": 0, "output_tokens": 0, "total_tokens": 0, "images_processed": 1},
+                    incident_id=incident_id,
+                    reasoning_effort=None,
+                    latency_s=0.0,
+                    is_replay=True,
+                )
+                return boxes, True
 
-        if file_to_load is not None:
-            with open(file_to_load, "r", encoding="utf-8") as f:
-                cdata = json.load(f)
-            record_usage(
-                purpose="sam_localization",
-                model_id="sam-3.1",
-                usage=cdata.get("usage", {}),
-                incident_id=incident_id,
-                latency_s=0.0,
-                is_replay=True,
-            )
-            return cdata.get("boxes", []), True
-        elif self.mock_mode or self.replay_mode or not self.api_key:
-            # Offline or unconfigured fallback: returns 0 matches
+            # 2. Check general cache / replay
+            file_to_load = None
+            if replay_file.exists():
+                file_to_load = replay_file
+            elif cache_file.exists():
+                file_to_load = cache_file
+
+            if file_to_load is not None:
+                with open(file_to_load, "r", encoding="utf-8") as f:
+                    cdata = json.load(f)
+                record_usage(
+                    purpose="sam_localization",
+                    model_id="sam-3.1",
+                    usage=cdata.get("usage", {}),
+                    incident_id=incident_id,
+                    latency_s=0.0,
+                    is_replay=True,
+                )
+                return cdata.get("boxes", []), True
+
+        if self.mock_mode or self.replay_mode or not self.api_key:
             return [], True
 
         # 3. Live call to /v1/responses
         import base64
-        mime = "image/jpeg" if Path(image_path).suffix.lower() in [".jpg", ".jpeg"] else "image/png"
-        with open(image_path, "rb") as f:
-            b64 = base64.b64encode(f.read()).decode("utf-8")
+        import io
+        from PIL import Image
+
+        with Image.open(image_path) as img:
+            img_rgb = img.convert("RGB")
+            max_dim = max(img_rgb.size)
+            if max_dim > 1280:
+                scale = 1280 / max_dim
+                new_size = (int(img_rgb.width * scale), int(img_rgb.height * scale))
+                working_img = img_rgb.resize(new_size, Image.Resampling.LANCZOS)
+            else:
+                working_img = img_rgb.copy()
+
+        buf = io.BytesIO()
+        working_img.save(buf, format="JPEG", quality=90)
+        b64 = base64.b64encode(buf.getvalue()).decode("utf-8")
+        data_url = f"data:image/jpeg;base64,{b64}"
 
         req_payload = {
             "model": "sam-3.1",
-            "input_text": concept,
-            "input_image": f"data:{mime};base64,{b64}",
+            "input": [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "input_text", "text": concept},
+                        {"type": "input_image", "image_url": data_url}
+                    ]
+                }
+            ]
         }
         url = f"{self.base_url}/responses"
         headers = {

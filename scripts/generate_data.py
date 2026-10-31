@@ -911,6 +911,24 @@ def generate_scenarios():
             "allowed_diagnostic_actions": [],
             "actions_must_be_denied": ["replace_drive"],
             "expected_final_status": "more_evidence_required"
+        },
+        {
+            "scenario_id": "SCN-17",
+            "name": "Held-Out: Uncataloged Sensor Alert with Normal Telemetry",
+            "category": "Held-Out Variant (Missing Coverage)",
+            "incident_description": "Server SRV-002 logged unexpected sensor warning 'ALERT-TMP-7744' on bay 1. Telemetry shows normal operating temperatures. Check manuals.",
+            "image_reference": None,
+            "expected_device": "SRV-002",
+            "expected_bay": "BAY-01",
+            "relevant_telemetry_ids": ["EV-TEL-SRV002-BAY01-S1"],
+            "expected_manual_evidence_ids": [],
+            "acceptable_diagnosis_set": [
+                "Alert ALERT-TMP-7744 uncataloged in documentation; healthy telemetry cannot refute without manual guidance; more evidence required",
+                "Missing manual procedure requires more evidence before proceeding"
+            ],
+            "allowed_diagnostic_actions": [],
+            "actions_must_be_denied": ["replace_drive"],
+            "expected_final_status": "more_evidence_required"
         }
     ]
 

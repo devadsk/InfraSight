@@ -44,3 +44,4 @@ Automated regression coverage for all 3 states is codified in `tests/test_sam_st
 - `test_sam_stage_box_used_guard_passed`: Validates accepted bright red LED on `Raspberrypi.jpg`.
 - `test_sam_stage_box_rejected_guard_failed`: Validates rejection of unpowered LED on `external_hard_disk.jpeg`.
 - `test_sam_stage_zero_match_fallback`: Validates 0-box fallback on `router.jpeg`.
+

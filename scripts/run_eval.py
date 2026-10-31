@@ -11,6 +11,8 @@ Runs evaluation scenarios through the full FastAPI REST workflow:
 """
 
 import argparse
+import datetime
+import sqlite3
 import copy
 import json
 import os
@@ -393,10 +395,31 @@ def run_negative_controls() -> bool:
     return all_passed
 
 
+def _get_file_info(p: Path) -> str:
+    mtime = datetime.datetime.fromtimestamp(p.stat().st_mtime, tz=datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+    # Check if results mention live vs replay via incidents in DB
+    try:
+        with open(p, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        inc_ids = [r.get("incident_id") for r in data if r.get("incident_id")]
+        conn = sqlite3.connect("data/infrasight.db")
+        c = conn.cursor()
+        placeholders = ",".join(["?"] * len(inc_ids))
+        c.execute(f"SELECT SUM(CASE WHEN is_replay=0 THEN 1 ELSE 0 END), SUM(CASE WHEN is_replay=1 THEN 1 ELSE 0 END) FROM usage_ledger WHERE incident_id IN ({placeholders})", inc_ids)
+        row = c.fetchone()
+        conn.close()
+        live_cnt = row[0] or 0
+        rep_cnt = row[1] or 0
+        mode_str = f"Live calls={live_cnt}, Replay calls={rep_cnt}"
+    except Exception:
+        mode_str = "mode=unknown"
+    return f"{p.name} (modified: {mtime} | {mode_str})"
+
+
 def compare_results(baseline_path: Path, current_path: Path) -> bool:
     """
-    Compares an evaluation result JSON against a baseline result JSON (Phase 6 / Close-Out A1.2).
-    Prints a detailed delta table and identifies any regressions or improvements.
+    Compares an evaluation result JSON against a baseline result JSON.
+    Prints a detailed delta table, file timestamps, live/replay flags, and identifies regressions.
     """
     if not baseline_path.exists():
         print(f"Error: Baseline file '{baseline_path}' not found.")
@@ -412,8 +435,13 @@ def compare_results(baseline_path: Path, current_path: Path) -> bool:
 
     all_sids = sorted(set(list(base_results.keys()) + list(curr_results.keys())))
 
+    base_info = _get_file_info(baseline_path)
+    curr_info = _get_file_info(current_path)
+
     print("\n" + "=" * 120)
-    print(f"EVALUATION COMPARISON: CURRENT RESULTS vs BASELINE ({baseline_path.name}) — simulated environment")
+    print(f"EVALUATION COMPARISON: CURRENT RESULTS vs BASELINE - simulated environment")
+    print(f"  Baseline file: {base_info}")
+    print(f"  Current file:  {curr_info}")
     print("=" * 120)
     print(f"{'Scenario':<8} | {'Baseline Status':<22} | {'Current Status':<22} | {'Base Strict':<11} | {'Curr Strict':<11} | {'Status Change':<13} | {'Cost Delta':<10}")
     print("-" * 120)
@@ -481,7 +509,14 @@ def main():
     parser.add_argument("--self-test", action="store_true", help="Run negative-control harness self-test")
     parser.add_argument("--compare", nargs="?", const="eval/results_baseline.json", default=None,
                         help="Compare evaluation results against baseline JSON (default: eval/results_baseline.json)")
+    parser.add_argument("--compare-files", nargs=2, metavar=("FILE1", "FILE2"), default=None,
+                        help="Offline comparison between two result JSON files")
     args = parser.parse_args()
+
+    if args.compare_files:
+        f1, f2 = Path(args.compare_files[0]), Path(args.compare_files[1])
+        success = compare_results(f1, f2)
+        sys.exit(0 if success else 1)
 
     if args.self_test:
         success = run_negative_controls()
@@ -493,6 +528,9 @@ def main():
         curr_file = Path("eval/results.json")
         success = compare_results(base_file, curr_file)
         sys.exit(0 if success else 1)
+
+    if args.live:
+        os.environ["BYPASS_CACHE"] = "true"
 
     is_live = args.live
     repeats = max(1, args.repeats)
@@ -524,7 +562,7 @@ def main():
         run_results = []
         mode_label = "LIVE META MODEL API" if is_live else "CACHED / REPLAY MODE"
         print("=" * 105)
-        print(f"STARTING INFRASIGHT EVALUATION ({mode_label}) — simulated environment")
+        print(f"STARTING INFRASIGHT EVALUATION ({mode_label}) - simulated environment")
         print("=" * 105)
 
         for scn in scenarios:
@@ -608,8 +646,19 @@ def main():
         cost_str = f"${r.get('estimated_cost_usd', 0.0):.4f}"
         print(f"{sid:<8} | {exp_st:<22} | {act_st:<22} | {st_strict:<6} | {st_adj:<5} | {dev_str:<6} | {ev_str:<5} | {pol_str:<6} | {cost_str:<8}")
 
+    dev_sids = {f"SCN-{i:02d}" for i in range(1, 14)} | {"SCN-16"}
+    var_sids = {"SCN-14", "SCN-15", "SCN-17"}
+
+    dev_results = [r for r in results if r["scenario_id"] in dev_sids]
+    var_results = [r for r in results if r["scenario_id"] in var_sids]
+
+    k_dev_strict = sum(1 for r in dev_results if r.get("status_correct"))
+    k_var_strict = sum(1 for r in var_results if r.get("status_correct"))
+
     print("=" * 115)
-    print(f"HEADLINE METRICS ({total} scenarios evaluated):")
+    print(f"HEADLINE METRICS ({total} scenarios evaluated - simulated environment):")
+    print(f"- Development scenarios: {k_dev_strict}/{len(dev_results)}")
+    print(f"- Same-logic variants:   {k_var_strict}/{len(var_results)}")
     print(f"- Device Resolution:     {k_device}/{total}")
     print(f"- Status (Strict):        {k_status_strict}/{total}")
     print(f"- Status (Adjusted):      {k_status_adj}/{total}")

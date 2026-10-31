@@ -87,7 +87,7 @@ class SimulatedExecutionEngine:
 
         canonical_json = canonicalize_args(args)
         args_hash = compute_args_hash(incident_id, tool, canonical_json)
-        action_id = f"ACT-{incident_id}-{hashlib.sha256(f'{tool}:{canonical_json}'.encode()).hexdigest()[:8].upper()}"
+        action_id = f"ACT-{hashlib.sha256(f'{tool}:{canonical_json}'.encode()).hexdigest()[:8].upper()}"
 
         now = datetime.now(timezone.utc)
         expires_at = (now + timedelta(minutes=expires_minutes)).isoformat()

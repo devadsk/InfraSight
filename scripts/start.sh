@@ -23,13 +23,14 @@ for i in $(seq 1 30); do
     sleep 1
 done
 
-# Start Streamlit frontend on public port
-FRONTEND_PORT=${PORT:-8501}
+# Start Streamlit frontend on public port (default 7860 for Hugging Face Spaces)
+FRONTEND_PORT=${PORT:-7860}
 echo "[*] Launching Streamlit frontend on 0.0.0.0:${FRONTEND_PORT}..."
 BACKEND_URL="http://127.0.0.1:${BACKEND_PORT:-8000}" streamlit run frontend/app.py \
     --server.port "${FRONTEND_PORT}" \
     --server.address 0.0.0.0 \
     --server.headless true \
+    --server.enableXsrfProtection false \
     --browser.gatherUsageStats false &
 FRONTEND_PID=$!
 

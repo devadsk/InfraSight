@@ -41,3 +41,4 @@
    - Perception Tab (Pixel HSV analysis & SAM overlays)
    - Meta Model Activity Tab (Verifiable ledger)
 3. **Execution Mode:** Use **Replay Mode** during recording to eliminate network latency, ensuring instantaneous and reproducible UI responses.
+

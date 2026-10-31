@@ -558,7 +558,10 @@ def approve_action(
 
     # 4. Resume Investigation with verified evidence
     incident_id = action["incident_id"]
-    orchestrator = InvestigationOrchestrator()
+    inc = get_incident(incident_id)
+    is_replay = (inc.get("mode") == "replay") if inc else False
+    client = MetaClient(replay_mode=is_replay, mock_mode=is_replay)
+    orchestrator = InvestigationOrchestrator(meta_client=client)
     try:
         final_diag, v_res, _ = orchestrator.resume_investigation(
             incident_id=incident_id,
@@ -622,7 +625,10 @@ def reject_action(
 
     # Resume investigation as unresolved
     incident_id = action["incident_id"]
-    orchestrator = InvestigationOrchestrator()
+    inc = get_incident(incident_id)
+    is_replay = (inc.get("mode") == "replay") if inc else False
+    client = MetaClient(replay_mode=is_replay, mock_mode=is_replay)
+    orchestrator = InvestigationOrchestrator(meta_client=client)
     try:
         final_diag, v_res, _ = orchestrator.resume_investigation(
             incident_id=incident_id,

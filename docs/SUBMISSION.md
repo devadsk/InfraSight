@@ -61,14 +61,14 @@ All model interactions are logged to a persistent SQLite usage ledger (`usage_le
 
 ## 5. Measured Evaluation Results (Simulated Environment)
 
-Across our standardized evaluation benchmark of 16 scenarios:
+Across our standardized evaluation benchmark of 17 scenarios:
 
 | Category | Passed / Total ($k/N$) | Percentage |
 | :--- | :--- | :--- |
-| **Development Scenarios** | 13/13 | **100.0%** |
-| **Same-Logic Held-Out Scenarios** | 3/4 | **75.0%** |
-| **Overall Strict Benchmark Score** | **15/16** | **93.8%** |
-| **Regressions Against Baseline** | **0/16** | **0.0%** |
+| **Development Scenarios** | 13/14 | **92.9%** |
+| **Same-Logic Held-Out Scenarios** | 3/3 | **100.0%** |
+| **Overall Strict Benchmark Score** | **16/17** | **94.1%** |
+| **Regressions Against Baseline** | **0/17** | **0.0%** |
 | **Offline Replay Verification** | **5/5 Hero Cases** | **100.0%** |
 | **Policy Stress Test** | **5/5 Prohibited Actions Blocked** | **100.0%** |
 
@@ -82,3 +82,4 @@ Across our standardized evaluation benchmark of 16 scenarios:
 - **Short 45s Social Cut:** Included in `docs/DEMO_SCRIPT.md`
 - **Interactive Web App:** `http://localhost:8501` (Streamlit + FastAPI)
 - **Deployment Documentation:** [`docs/DEPLOY.md`](file:///d:/InfraSight/docs/DEPLOY.md)
+

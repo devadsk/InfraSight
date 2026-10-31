@@ -75,6 +75,20 @@ def init_db(db_path: Optional[Path] = None) -> None:
             );
         """)
         conn.execute("""
+            CREATE TRIGGER IF NOT EXISTS prevent_usage_ledger_update
+            BEFORE UPDATE ON usage_ledger
+            BEGIN
+                SELECT RAISE(FAIL, 'usage_ledger is append-only: updates are prohibited');
+            END;
+        """)
+        conn.execute("""
+            CREATE TRIGGER IF NOT EXISTS prevent_usage_ledger_delete
+            BEFORE DELETE ON usage_ledger
+            BEGIN
+                SELECT RAISE(FAIL, 'usage_ledger is append-only: deletes are prohibited');
+            END;
+        """)
+        conn.execute("""
             CREATE TABLE IF NOT EXISTS pending_actions (
                 action_id TEXT PRIMARY KEY,
                 incident_id TEXT NOT NULL,
@@ -212,10 +226,13 @@ def record_usage(
     p_details = usage.get("prompt_tokens_details") or {}
     cached = p_details.get("cached_tokens") or 0
 
-    missing_flag = 1 if (p_tokens == 0 and c_tokens == 0 and not is_replay) else 0
-
-    # Pricing per million tokens (Muse Spark rate: $0.30/M input, $0.90/M output approx)
-    cost = (p_tokens * 0.30 / 1_000_000) + (c_tokens * 0.90 / 1_000_000)
+    images_proc = usage.get("images_processed", 0)
+    if "sam" in model_id.lower() or purpose == "sam_localization":
+        cost = max(1, images_proc) * 0.0025
+        missing_flag = 1 if (images_proc == 0 and not is_replay) else 0
+    else:
+        cost = (p_tokens * 0.30 / 1_000_000) + (c_tokens * 0.90 / 1_000_000)
+        missing_flag = 1 if (p_tokens == 0 and c_tokens == 0 and not is_replay) else 0
 
     with conn:
         conn.execute("""

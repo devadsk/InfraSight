@@ -137,3 +137,4 @@ def test_upload_auto_delete():
     deleted_count = cleanup_old_uploads(max_age_seconds=600)
     assert deleted_count >= 1
     assert not test_file.exists()
+

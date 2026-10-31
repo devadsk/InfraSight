@@ -76,3 +76,4 @@ def test_policy_stress_test_api_endpoint(client):
     assert steps == ["a", "b", "c", "d", "e"]
     for o in data["outcomes"]:
         assert o["status"] == "denied"
+
