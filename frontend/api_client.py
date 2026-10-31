@@ -215,3 +215,11 @@ class InfraSightAPIClient:
             return False, f"Rejection Failed ({resp.status_code}): {detail}", data
         except requests.exceptions.RequestException as e:
             return False, f"Network communication error during rejection: {e}", {}
+
+    def run_policy_stress_test(self) -> Dict[str, Any]:
+        """
+        Triggers the scripted adversarial policy stress test on the backend.
+        Returns the incident result with authentic audit events and outcomes.
+        """
+        resp = requests.post(self._url("/policy/stress-test"), timeout=self.timeout)
+        return self._handle_response(resp)

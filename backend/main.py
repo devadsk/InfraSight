@@ -359,6 +359,16 @@ def get_incident_report(incident_id: str) -> Dict[str, Any]:
     }
 
 
+@app.post("/policy/stress-test")
+def trigger_policy_stress_test() -> Dict[str, Any]:
+    """
+    Executes a scripted adversarial stress test against backend policy boundaries (Phase 6 / Close-Out A3).
+    Proposes 5 distinct prohibited mutations and verifies that the backend intercepts and denies each.
+    """
+    from backend.policy_stress import run_policy_stress_test
+    return run_policy_stress_test()
+
+
 # ---------------------------------------------------------------------------
 # 5. Incident Audit Trail
 # ---------------------------------------------------------------------------

@@ -133,32 +133,29 @@ def main():
             print(f"[+] Saved: {shot4}")
 
             # -------------------------------------------------------------
-            # Screenshot 5: SCN-10 Class C Arbitrary Shell Denial (Safety Moment)
+            # Screenshot 5: Policy Stress Test (Scripted Adversarial Model - Safety Moment)
             # -------------------------------------------------------------
-            print("[*] Running SCN-10 (Arbitrary Shell Execution Denial)...")
+            print("[*] Running Policy Stress Test (Scripted Adversarial Model)...")
             # Clear / Reset
-            page.wait_for_selector("button:has-text('Clear / New Investigation')", timeout=10000).click()
-            page.wait_for_timeout(2000)
+            clear_sel = page.locator("button:has-text('Clear / New Investigation')")
+            if clear_sel.count() > 0:
+                clear_sel.first.click()
+                page.wait_for_timeout(2000)
 
-            # Select SCN-10 from dropdown
-            selectbox = page.wait_for_selector("div[data-testid='stSelectbox']", timeout=10000)
-            selectbox.click()
-            page.wait_for_timeout(1000)
-            page.wait_for_selector("[role='option']:has-text('SCN-10')", timeout=10000).click()
-            page.wait_for_timeout(1000)
-
-            # Click Start Investigation
-            page.wait_for_selector("button:has-text('Start Investigation')", timeout=10000).click()
-            print("[*] Clicked Start Investigation for SCN-10. Waiting for safety panel...")
+            # Click Policy Stress Test button
+            stress_btn = page.wait_for_selector("button:has-text('Policy Stress Test')", timeout=10000)
+            stress_btn.click()
+            print("[*] Clicked Policy Stress Test button. Waiting for safety enforcement panel...")
 
             try:
                 page.wait_for_selector("text=Security & Safety Policy Enforcements", timeout=30000)
+                page.wait_for_selector("text=Scripted adversarial requests", timeout=30000)
                 page.wait_for_timeout(2000)
             except Exception as e:
-                debug_shot = SCREENSHOT_DIR / "debug_page_scn10.png"
+                debug_shot = SCREENSHOT_DIR / "debug_page_stress.png"
                 page.screenshot(path=str(debug_shot), full_page=True)
                 page_text = page.inner_text("body")
-                with open("docs/screenshots/debug_text_scn10.txt", "w", encoding="utf-8") as f:
+                with open("docs/screenshots/debug_text_stress.txt", "w", encoding="utf-8") as f:
                     f.write(page_text)
                 raise e
 
@@ -167,7 +164,7 @@ def main():
             print(f"[+] Saved: {shot5}")
 
             # Remove temporary debug files if all succeed
-            for dbg in ["debug_info.txt", "debug_page.png", "debug_text.txt", "debug_page_scn10.png", "debug_text_scn10.txt"]:
+            for dbg in ["debug_info.txt", "debug_page.png", "debug_text.txt", "debug_page_scn10.png", "debug_text_scn10.txt", "debug_page_stress.png", "debug_text_stress.txt"]:
                 dbg_p = SCREENSHOT_DIR / dbg
                 if dbg_p.exists():
                     dbg_p.unlink()

@@ -393,6 +393,85 @@ def run_negative_controls() -> bool:
     return all_passed
 
 
+def compare_results(baseline_path: Path, current_path: Path) -> bool:
+    """
+    Compares an evaluation result JSON against a baseline result JSON (Phase 6 / Close-Out A1.2).
+    Prints a detailed delta table and identifies any regressions or improvements.
+    """
+    if not baseline_path.exists():
+        print(f"Error: Baseline file '{baseline_path}' not found.")
+        return False
+    if not current_path.exists():
+        print(f"Error: Current results file '{current_path}' not found.")
+        return False
+
+    with open(baseline_path, "r", encoding="utf-8") as f:
+        base_results = {r["scenario_id"]: r for r in json.load(f)}
+    with open(current_path, "r", encoding="utf-8") as f:
+        curr_results = {r["scenario_id"]: r for r in json.load(f)}
+
+    all_sids = sorted(set(list(base_results.keys()) + list(curr_results.keys())))
+
+    print("\n" + "=" * 120)
+    print(f"EVALUATION COMPARISON: CURRENT RESULTS vs BASELINE ({baseline_path.name}) — simulated environment")
+    print("=" * 120)
+    print(f"{'Scenario':<8} | {'Baseline Status':<22} | {'Current Status':<22} | {'Base Strict':<11} | {'Curr Strict':<11} | {'Status Change':<13} | {'Cost Delta':<10}")
+    print("-" * 120)
+
+    regressions = 0
+    improvements = 0
+    unchanged = 0
+
+    base_strict_count = 0
+    curr_strict_count = 0
+    total = len(all_sids)
+
+    for sid in all_sids:
+        b = base_results.get(sid, {})
+        c = curr_results.get(sid, {})
+
+        b_st = str(b.get("actual_status", "MISSING"))[:22]
+        c_st = str(c.get("actual_status", "MISSING"))[:22]
+
+        b_strict = bool(b.get("status_correct", False))
+        c_strict = bool(c.get("status_correct", False))
+
+        if b_strict:
+            base_strict_count += 1
+        if c_strict:
+            curr_strict_count += 1
+
+        b_str = "PASS" if b_strict else "FAIL"
+        c_str = "PASS" if c_strict else "FAIL"
+
+        b_cost = b.get("estimated_cost_usd", 0.0)
+        c_cost = c.get("estimated_cost_usd", 0.0)
+        delta_cost = c_cost - b_cost
+        cost_delta_str = f"{delta_cost:+.4f}"
+
+        if b_strict and not c_strict:
+            change_str = "REGRESSION"
+            regressions += 1
+        elif not b_strict and c_strict:
+            change_str = "IMPROVEMENT"
+            improvements += 1
+        else:
+            change_str = "UNCHANGED"
+            unchanged += 1
+
+        print(f"{sid:<8} | {b_st:<22} | {c_st:<22} | {b_str:<11} | {c_str:<11} | {change_str:<13} | ${cost_delta_str:<9}")
+
+    print("=" * 120)
+    print(f"COMPARISON SUMMARY ({total} scenarios):")
+    print(f"- Baseline Strict Score:  {base_strict_count}/{total} ({(base_strict_count/total)*100:.1f}%)")
+    print(f"- Current Strict Score:   {curr_strict_count}/{total} ({(curr_strict_count/total)*100:.1f}%)")
+    print(f"- Regressions:            {regressions}")
+    print(f"- Improvements:           {improvements}")
+    print(f"- Unchanged Outcomes:     {unchanged}/{total}")
+    print("=" * 120)
+    return regressions == 0
+
+
 def main():
     parser = argparse.ArgumentParser(description="InfraSight Phase 4 Evaluation Runner")
     parser.add_argument("--live", action="store_true", help="Run against live Meta Model API")
@@ -400,10 +479,19 @@ def main():
     parser.add_argument("--scenario", type=str, default=None, help="Filter to single scenario ID (e.g. SCN-08)")
     parser.add_argument("--repeats", type=int, default=1, help="Number of evaluation repeats (for stability testing)")
     parser.add_argument("--self-test", action="store_true", help="Run negative-control harness self-test")
+    parser.add_argument("--compare", nargs="?", const="eval/results_baseline.json", default=None,
+                        help="Compare evaluation results against baseline JSON (default: eval/results_baseline.json)")
     args = parser.parse_args()
 
     if args.self_test:
         success = run_negative_controls()
+        sys.exit(0 if success else 1)
+
+    # Standalone compare mode (if neither --live nor --replay is requested)
+    if args.compare and not args.live and not args.replay:
+        base_file = Path(args.compare)
+        curr_file = Path("eval/results.json")
+        success = compare_results(base_file, curr_file)
         sys.exit(0 if success else 1)
 
     is_live = args.live
@@ -450,6 +538,33 @@ def main():
             print(f"  -> Outcome: {res.get('actual_status')} (Expected: {res.get('expected_status')}) [Strict: {strict_sym}, Adj: {adj_sym}]")
 
         all_repeat_results.append(run_results)
+
+        # Check usage ledger for live vs replay verification (Phase 6 / Close-Out A1.3)
+        if is_live:
+            conn = get_db_connection()
+            inc_ids = [r["incident_id"] for r in run_results if r.get("incident_id")]
+            if inc_ids:
+                placeholders = ",".join(["?"] * len(inc_ids))
+                cur = conn.cursor()
+                stats = cur.execute(f"""
+                    SELECT
+                        SUM(CASE WHEN is_replay = 0 THEN 1 ELSE 0 END) as live_calls,
+                        SUM(CASE WHEN is_replay = 1 THEN 1 ELSE 0 END) as replay_calls,
+                        SUM(total_tokens) as tokens,
+                        SUM(estimated_cost_usd) as cost
+                    FROM usage_ledger
+                    WHERE incident_id IN ({placeholders});
+                """, inc_ids).fetchone()
+                live_calls = stats["live_calls"] or 0
+                replay_calls = stats["replay_calls"] or 0
+                tokens_count = stats["tokens"] or 0
+                cost_val = stats["cost"] or 0.0
+                print(f"\nRun {r_idx + 1} Ledger Audit: is_replay=0 (live): {live_calls} calls, is_replay=1 (replay): {replay_calls} calls | Tokens: {tokens_count:,} | Cost: ${cost_val:.4f}")
+                if replay_calls > 0:
+                    print(f"  [!] WARNING: REFUSED 'LIVE' CERTIFICATION: Run contained {replay_calls} cached/replayed API calls.")
+                else:
+                    print(f"  [+] CERTIFIED LIVE: 100% of calls ({live_calls}/{live_calls}) were executed live against Meta Model API.")
+            conn.close()
 
     # Save last run results to eval/results.json
     eval_dir = Path("eval")
@@ -534,8 +649,12 @@ def main():
         if unstable_scenarios:
             print(f"Unstable scenarios detected: {', '.join(unstable_scenarios)}")
         else:
-            print("All 16 scenarios are 100% deterministic across 3 runs (3/3 consistency).")
+            print("All scenarios consistent across 3 runs (3/3 consistency).")
         print("=" * 105)
+
+    if args.compare:
+        base_file = Path(args.compare)
+        compare_results(base_file, results_file)
 
 
 if __name__ == "__main__":

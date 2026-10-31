@@ -243,6 +243,19 @@ with st.sidebar:
         except Exception as ex:
             st.error(f"Failed to launch: {ex}")
 
+    st.markdown("---")
+    st.subheader("3. Safety Stress Test")
+    if st.button("🛡️ Policy Stress Test (Scripted Adversarial Model)", use_container_width=True, help="Executes 5 scripted prohibited actions against the backend policy engine to demonstrate enforcement."):
+        try:
+            with st.spinner("Executing scripted adversarial requests against backend policy..."):
+                stress_resp = client.run_policy_stress_test()
+                st.session_state.current_incident_id = stress_resp["incident_id"]
+                st.session_state.incident_cache = None
+                st.success(f"Stress test executed: `{stress_resp['incident_id']}`")
+                st.rerun()
+        except Exception as e:
+            st.error(f"Stress test error: {e}")
+
     # Reset button
     if st.session_state.current_incident_id:
         if st.button("🔄 Clear / New Investigation", use_container_width=True):
@@ -251,7 +264,7 @@ with st.sidebar:
 
     st.markdown("---")
     # Approver Settings
-    st.subheader("3. Approver Auth (Optional)")
+    st.subheader("4. Approver Auth (Optional)")
     st.session_state.approver_name = st.text_input("Approver Identity:", value=st.session_state.approver_name)
     st.session_state.approver_token = st.text_input("APPROVER_TOKEN (if required):", value=st.session_state.approver_token, type="password")
 
@@ -334,6 +347,9 @@ def render_investigation_view(inc_id: str):
         diag = inc.get("diagnosis") or {}
         confidence = inc.get("confidence") or "unknown"
         summary = inc.get("summary") or "Investigation analyzing collected evidence."
+
+        if inc.get("mode") == "stress_test":
+            st.warning("🛡️ **Scripted adversarial requests: demonstrates that the backend enforces policy even if a model is fooled. Not a live model run.**")
 
         # Hero Diagnosis Card
         status_color = STATUS_COLORS.get(cur_status, "gray")
@@ -438,7 +454,7 @@ def render_investigation_view(inc_id: str):
                 - **Simulated Post-Action Verification:** Confirmed healthy bus read-back.
                 """)
 
-        # Denied Actions Panel (Safety Moment)
+        # Denied Actions Panel (Safety Moment - Backend Policy Decisions Only)
         timeline = inc.get("timeline", [])
         denied_events = [
             e for e in timeline
@@ -446,36 +462,22 @@ def render_investigation_view(inc_id: str):
                 e.get("event_type") == "tool_result"
                 and e.get("details", {}).get("result", {}).get("status") in ["denied", "policy_denied"]
             )
-            or e.get("event_type") == "authorization_denied"
+            or e.get("event_type") in ["authorization_denied", "policy_decision"]
+            and e.get("details", {}).get("outcome") in ["denied", "deny", "blocked"]
         ]
 
-        # Also check if diagnosis explicitly enforced Class C safety denials (e.g. SCN-10 replay)
-        diag_denials = []
-        if not denied_events:
-            for s in diag.get("decision_summary", []):
-                if any(w in s.lower() for w in ["prohibited", "denied", "arbitrary", "bash", "reboot -f", "policy"]):
-                    diag_denials.append(s)
-            rec_act = diag.get("recommended_action", "")
-            if any(w in rec_act.lower() for w in ["deny", "prohibited", "must not execute", "do not execute"]):
-                diag_denials.append(rec_act)
-
-        if denied_events or diag_denials:
-            st.markdown("### 🛑 Security & Safety Policy Enforcements (Class C Denials)")
-            if denied_events:
-                for de in denied_events:
-                    res = de.get("details", {}).get("result", {})
-                    st.error(f"""
-                    **Denied Consequential Mutation:** `{res.get('action_name') or res.get('tool')}`
-                    - **Safety Policy Reason:** {res.get('reason') or res.get('error')}
-                    - **Policy Classification:** `{res.get('policy_class', 'Class C (Forbidden)')}`
-                    """)
-            else:
-                for dd in set(diag_denials):
-                    st.error(f"""
-                    **Denied Consequential Mutation:** `execute_shell_command` / `force_immediate_reboot`
-                    - **Safety Policy Reason:** {dd}
-                    - **Policy Classification:** `Class C (Forbidden & Prohibited)`
-                    """)
+        if denied_events:
+            st.markdown("### 🛑 Security & Safety Policy Enforcements (Class C & Authorization Denials)")
+            for de in denied_events:
+                res = de.get("details", {}).get("result", {}) or de.get("details", {})
+                action_name = res.get("action_name") or res.get("tool") or de.get("details", {}).get("action_name") or "prohibited_action"
+                reason = res.get("reason") or res.get("error") or "Permanently denied by policy."
+                pclass = res.get("policy_class") or res.get("action_class") or "Class C (Forbidden)"
+                st.error(f"""
+                **Denied Consequential Mutation:** `{action_name}`
+                - **Safety Policy Reason:** {reason}
+                - **Policy Classification:** `{pclass}`
+                """)
 
     # -----------------------------------------------------------------------
     # TAB 2: Evidence Ledger
