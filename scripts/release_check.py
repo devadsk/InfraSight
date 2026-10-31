@@ -57,9 +57,10 @@ def check_secrets_and_paths() -> bool:
             print(f"  [FAIL] API Key found in tracked files: {len(res.stdout.splitlines())} matches")
             return False
     
-    # Check absolute paths
-    for pattern in ["file:///d:", "d:/infrasight", "C:/Users/ELCOT", "C:\\\\Users\\\\ELCOT"]:
-        res_p = subprocess.run(["git", "grep", "-i", "-I", pattern], capture_output=True, text=True)
+    # Check absolute paths (excluding this check script itself)
+    for p_prefix, p_suffix in [("file://" + "/d:", ""), ("d:/" + "infrasight", ""), ("C:/" + "Users/ELCOT", ""), ("C:\\\\" + "Users\\\\ELCOT", "")]:
+        pattern = p_prefix + p_suffix
+        res_p = subprocess.run(["git", "grep", "-i", "-I", pattern, "--", ":!scripts/release_check.py"], capture_output=True, text=True)
         if res_p.stdout:
             print(f"  [FAIL] Absolute path pattern '{pattern}' found in tracked files:")
             for l in res_p.stdout.splitlines()[:3]:
