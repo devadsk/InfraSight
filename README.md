@@ -1,3 +1,13 @@
+---
+title: InfraSight
+emoji: 🖥️
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # InfraSight: Evidence-First Multimodal IT Infrastructure Troubleshooting Assistant
 
 > **Meta Global AI Developer Hackathon (2026)** — Indie Developer Track  
