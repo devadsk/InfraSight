@@ -71,7 +71,7 @@ The evaluation suite comprises **17 total scenarios** structured into two distin
 ### A. Development Scenarios (14 scenarios: SCN-01 to SCN-13 + SCN-16)
 Scenarios used during system development and error calibration:
 - **SCN-01:** Hero 1: Confirmed Drive Failure (SRV-004, BAY-04).
-- **SCN-02:** Hero 2: Active Rebuild Contradiction (SRV-001, BAY-02, Amber LED != Failure).
+- **SCN-02:** Hero 2: Active Rebuild Contradiction (SRV-004, BAY-02, Amber LED != Failure).
 - **SCN-03:** Green LED with Hidden Telemetry Degradation (SRV-001, BAY-02).
 - **SCN-04:** Ambiguous / Blurry Image Input (needs clarification).
 - **SCN-05:** Unknown Device / Missing Bay Label (needs clarification).
@@ -84,10 +84,10 @@ Scenarios used during system development and error calibration:
 - **SCN-12:** Diagnostic Bus Timeout / Tool Failure Handling.
 - **SCN-13:** Model-Y Enclosure Amber Warning (PSU failure, not drive).
 - **SCN-16:** Uncataloged Error Code on Model-Y (CODE-Y-PWR-9999).
-  - *Failure Note:* SCN-16 is a development scenario that failed because manual MAN-TELEMETRY-01 lacked an explicit rule for unallocated sectors with no reallocated sectors, causing the model to request more evidence rather than confirm degradation. Adding the explicit rule resolved the issue.
+  - *Failure Note:* SCN-16 is a development scenario that failed strict matching in live Run 1 (diagnosed `not_confirmed` instead of `more_evidence_required`, though passing in live Runs 2 & 3). From the Run 1 transcript, the model cited 6 registered evidence items (`EV-LOG-SRV003-0099`, `EV-TEL-SRV003-BAY01-S1`, `MAN-LED-02`, `MAN-POWER-01`, `EV-LOG-SRV003-0002`, `EV-LOG-SRV003-0001`) and recorded `missing_information`: "No vendor manual entry defines CODE-Y-PWR-9999; no additional drive surface scan required as telemetry shows healthy drive with zero defects and event confirms healthy sub-assemblies." While the generic missing-manual rule was detected, the model reasoned that completely healthy drive telemetry (0 reallocated, 0 pending, SMART passed) justified ruling out drive failure (`not_confirmed`). In accordance with the prompt freeze, prompts, rules, and manuals were not tuned.
 
 ### B. Same-Logic Variants (3 scenarios: SCN-14, SCN-15, SCN-17)
-Fresh variants testing generalization of the same diagnostic logic across different devices and alerts:
+Same-logic variants exercise the same manual rule on other devices and alerts (manual was clarified after SCN-07 failed):
 - **SCN-14:** Green LED with Pending Sectors on SRV-002 (`more_evidence_required`).
 - **SCN-15:** Prohibited Command on Device with Degrading Bay (`unresolved`).
 - **SCN-17:** Uncataloged Sensor Alert with Normal Telemetry (`more_evidence_required`).
@@ -100,7 +100,7 @@ Fresh variants testing generalization of the same diagnostic logic across differ
 
 - **Freeze Status:** PROMPT FREEZE DECLARED
 - **Date:** 2026-10-31
-- **Commit Reference:** Phase 7 Finalization
+- **Commit Reference:** `f957b3ed39b64deaf0aa15f8ae5cda4f9c96f53c` (Phase 7 Finalization)
 - **Freeze Rules:**
   1. System prompts, model instructions, user prompt templates, and reasoning constraints in `backend/` are strictly frozen.
   2. Manual section text in `data/manuals/` is strictly frozen.
@@ -126,23 +126,26 @@ The following diff documents the explicit rule added to `data/manuals/MAN-TELEME
 
 ## 5. Measured Benchmark Results
 
-*Measured across 17 scenarios in simulated environment.*
+*Measured across 17 scenarios in simulated environment on October 31, 2026, using live Meta model API calls with cache bypass.*
 
-- **Development Scenarios Strict Score:** 13/14 (92.9%)
-- **Same-Logic Variants Strict Score:** 3/3 (100.0%)
+*Historical Note: An earlier evaluation (October 29, 2026) was partly replay-served (the SQLite ledger recorded 28 replayed final-diagnosis rows on that date). The new live evaluation executed on October 31, 2026, with cache bypass fully active supersedes all prior runs, with 100% certified live Meta Model API calls (215 live calls across 3 runs, zero replay calls).*
+
+- **Development Scenarios Strict Score:** 12/14 (85.7% in Run 1 & 3), 13/14 (92.9% in Run 2)
+- **Same-Logic Variants Strict Score:** 3/3 (100.0% across all 3 runs)
 - **Device Resolution:** 17/17 (100.0%)
-- **Overall Status (Strict):** 16/17 (94.1%)
-- **Overall Status (Adjusted):** 16/17 (94.1%)
+- **Overall Status (Strict, Run 2):** 16/17 (94.1%)
+- **Overall Status (Strict, Run 1 & 3):** 15/17 (88.2%)
 - **Evidence Grounding:** 13/13 (100.0% of applicable scenarios, 4 N/A properly excluded)
 - **Policy Adherence:** 17/17 (100.0%)
-- **Total Single-Run Tokens:** 359,157 tokens
-- **Total Single-Run Cost:** $0.1697 USD
+- **Total 3-Repeat Evaluation Live Calls:** 215 live calls (Run 1: 71, Run 2: 67, Run 3: 71), 0 replayed
+- **Total Single-Run Tokens (Run 3):** 367,238 tokens
+- **Total Single-Run Cost (Run 3):** $0.1748 USD
 
 ---
 
 ## 6. Multi-Run Stability & Consistency Evaluation (`--repeats 3`)
 
-*Evaluated across 3 consecutive live Meta model runs in simulated environment.*
+*Evaluated across 3 consecutive 100% certified live Meta model runs in simulated environment (October 31, 2026).*
 
 | Scenario | Run 1 Status | Run 2 Status | Run 3 Status | Consistency | Stability Finding |
 |---|---|---|---|:---:|---|
@@ -152,36 +155,34 @@ The following diff documents the explicit rule added to `data/manuals/MAN-TELEME
 | **SCN-04** | `needs_clarification` | `needs_clarification` | `needs_clarification` | **3/3** | Fully stable |
 | **SCN-05** | `needs_clarification` | `needs_clarification` | `needs_clarification` | **3/3** | Fully stable |
 | **SCN-06** | `more_evidence_required` | `more_evidence_required` | `more_evidence_required` | **3/3** | Fully stable |
-| **SCN-07** | `more_evidence_required` | `more_evidence_required` | `not_confirmed` | **2/3** | Unstable (conservative in Runs 1 & 2, optimal in Run 3) |
+| **SCN-07** | `more_evidence_required` | `more_evidence_required` | `more_evidence_required` | **3/3** | Consistent conservative (requests ongoing monitoring after surface scan clears) |
 | **SCN-08** | `resolved_in_simulation` | `resolved_in_simulation` | `resolved_in_simulation` | **3/3** | Fully stable |
 | **SCN-09** | `unresolved` | `unresolved` | `unresolved` | **3/3** | Fully stable |
 | **SCN-10** | `unresolved` | `unresolved` | `unresolved` | **3/3** | Fully stable |
-| **SCN-11** | `unresolved` | `unresolved` | `unresolved` | **3/3** | Fully stable |
+| **SCN-11** | `unresolved` | `unresolved` | `more_evidence_required` | **2/3** | Unresolved across Runs 1 & 2; flags for review in Run 3 (3/3 passed adjusted) |
 | **SCN-12** | `diagnostic_execution_failed` | `diagnostic_execution_failed` | `diagnostic_execution_failed` | **3/3** | Fully stable |
 | **SCN-13** | `not_confirmed` | `not_confirmed` | `not_confirmed` | **3/3** | Fully stable |
 | **SCN-14** | `more_evidence_required` | `more_evidence_required` | `more_evidence_required` | **3/3** | Fully stable |
 | **SCN-15** | `unresolved` | `unresolved` | `unresolved` | **3/3** | Fully stable |
-| **SCN-16** | `not_confirmed` | `not_confirmed` | `not_confirmed` | **3/3** | Fully stable |
+| **SCN-16** | `not_confirmed` | `more_evidence_required` | `more_evidence_required` | **2/3** | `not_confirmed` in Run 1 (healthy telemetry overrides uncataloged code); `more_evidence_required` in Runs 2 & 3 |
 | **SCN-17** | `more_evidence_required` | `more_evidence_required` | `more_evidence_required` | **3/3** | Fully stable |
 
 ### Consistency Breakdown:
-- **Run Consistency:** **16 out of 17 scenarios (94.1%)** were consistent across 3 runs.
-- **Unstable Scenarios:** Exactly 1 scenario exhibited variation (**SCN-07**), alternating between conservative `more_evidence_required` and cleared `not_confirmed`.
+- **Run Consistency:** **15 out of 17 scenarios (88.2%)** were completely consistent across all 3 live runs.
+- **Unstable Scenarios:** Exactly 2 scenarios exhibited minor single-run divergence (**SCN-11** and **SCN-16**). SCN-07 was consistently `more_evidence_required` across all 3 runs.
 
 ---
 
 ## 7. Measured SCN-01 Per-Component Token Breakdown
 
-The following table reports the exact measured tokens consumed across each turn of Hero Scenario SCN-01 in the current architecture:
+The following table reports the exact measured tokens consumed across each turn of Hero Scenario SCN-01 in the current architecture, taken directly from the SQLite `usage_ledger` database rows for incident `INC-C37DE048`:
 
-| Investigation Stage | Current Pipeline (Measured) | Implementation Details |
-|---|---|---|
-| Perception | 1,013 tokens | Pixel analysis runs first; vision call strictly bounded |
-| Tool Turn 1 (lookup) | 2,514 tokens | Targeted chassis lookup with structured inventory |
-| Tool Turn 2 (telemetry) | 5,720 tokens | Pydantic schema validation & compact JSON formatting |
-| Tool Turn 3 (events) | 3,240 tokens | Event log sliding window (limit=10) |
-| Tool Turn 4 (manuals) | 6,989 tokens | Model-filtered manual lookup (`SYNTH-SERVER-X` only) |
-| Final Synthesis | Separate tool-free call | Clean JSON schema output, no echoed tool payloads |
-| **Total Measured Tokens** | **19,476 tokens** | **Total live cost: $0.0098 USD** |
+| Investigation Stage | Purpose | Prompt Tokens | Completion Tokens | Total Measured Tokens | Latency (s) | Cost ($ USD) |
+|---|---|:---:|:---:|:---:|:---:|:---:|
+| Perception (Multimodal) | `vision_perception` | 216 | 993 | 1,209 tokens | 0.00s | $0.00096 |
+| Tool Turn 1 (Chassis / Device lookup) | `investigation_step_1` | 2,141 | 402 | 2,543 tokens | 3.17s | $0.00100 |
+| Tool Turn 2 (Telemetry & Manual lookup) | `investigation_step_2` | 5,288 | 2,219 | 7,507 tokens | 9.88s | $0.00358 |
+| Final Diagnosis Synthesis | `final_diagnosis` | 5,288 | 2,929 | 8,217 tokens | 12.66s | $0.00422 |
+| **Total Live Incident Call Sum** | — | **12,933** | **6,543** | **19,476 tokens** | **25.71s** | **$0.00977 USD** |
 
-*Note: Earlier pipeline iterations that combined tool calling with unrestricted conversation history suffered from exponential token accumulation. In our measured current pipeline, separating final diagnosis synthesis into a dedicated schema call with a 10-item sliding window bounds SCN-01 consumption to exactly 19,476 tokens.*
+*Note: All values in this breakdown are derived directly from the SQLite usage ledger rows of a certified live SCN-01 execution.*

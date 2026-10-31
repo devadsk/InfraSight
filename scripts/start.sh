@@ -25,12 +25,26 @@ done
 
 # Start Streamlit frontend on public port (default 7860 for Hugging Face Spaces)
 FRONTEND_PORT=${PORT:-7860}
-echo "[*] Launching Streamlit frontend on 0.0.0.0:${FRONTEND_PORT}..."
+
+# XSRF and CORS protection are enabled by default
+# Optional env switches: STREAMLIT_DISABLE_XSRF and STREAMLIT_DISABLE_CORS (off unless explicitly set to 'true')
+XSRF_PROTECTION="true"
+if [ "${STREAMLIT_DISABLE_XSRF:-false}" = "true" ]; then
+    XSRF_PROTECTION="false"
+fi
+
+CORS_PROTECTION="true"
+if [ "${STREAMLIT_DISABLE_CORS:-false}" = "true" ]; then
+    CORS_PROTECTION="false"
+fi
+
+echo "[*] Launching Streamlit frontend on 0.0.0.0:${FRONTEND_PORT} (XSRF=${XSRF_PROTECTION}, CORS=${CORS_PROTECTION})..."
 BACKEND_URL="http://127.0.0.1:${BACKEND_PORT:-8000}" streamlit run frontend/app.py \
     --server.port "${FRONTEND_PORT}" \
     --server.address 0.0.0.0 \
     --server.headless true \
-    --server.enableXsrfProtection false \
+    --server.enableXsrfProtection "${XSRF_PROTECTION}" \
+    --server.enableCORS "${CORS_PROTECTION}" \
     --browser.gatherUsageStats false &
 FRONTEND_PID=$!
 

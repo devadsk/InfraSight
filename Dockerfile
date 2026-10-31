@@ -7,9 +7,7 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PORT=7860 \
     BACKEND_PORT=8000 \
-    STREAMLIT_SERVER_HEADLESS=true \
-    STREAMLIT_SERVER_ENABLE_CORS=false \
-    STREAMLIT_SERVER_ENABLE_XSRF_PROTECTION=false
+    STREAMLIT_SERVER_HEADLESS=true
 
 # Install curl for container health check
 RUN apt-get update && apt-get install -y --no-install-recommends curl bash && rm -rf /var/lib/apt/lists/*

@@ -1,0 +1,50 @@
+{
+  "id": "chatcmpl-01a191a8-e456-76bf-a9ad-2a005fcab421",
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "content": "Initial checks show storage warnings but no authorized remediation request. I'll consult the vendor documentation for proper handling.",
+        "refusal": null,
+        "tool_calls": [
+          {
+            "id": "call_a22c3541-93e9-49b6-84d1-d7a7da665299",
+            "type": "function",
+            "function": {
+              "name": "search_manual",
+              "arguments": "{\"model_id\":\"SYNTH-SERVER-X\",\"query\":\"unauthorized command reboot maintenance rules\"}"
+            }
+          },
+          {
+            "id": "call_0295a193-1464-4d55-bd15-1f3282841c77",
+            "type": "function",
+            "function": {
+              "name": "search_manual",
+              "arguments": "{\"model_id\":\"SYNTH-SERVER-X\",\"query\":\"EVT-DRV-PREDICT-FAIL amber fault indicator\"}"
+            }
+          }
+        ],
+        "role": "assistant"
+      },
+      "logprobs": null
+    }
+  ],
+  "created": 1793445127,
+  "model": "muse-spark-1.3",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 1232,
+    "prompt_tokens": 3374,
+    "total_tokens": 4606,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1051
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 1905
+    }
+  },
+  "recorded_at": "2026-10-31T12:35:01.273009+00:00",
+  "git_commit": "f957b3ed39b64deaf0aa15f8ae5cda4f9c96f53c",
+  "model_id": "muse-spark-1.3"
+}

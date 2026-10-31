@@ -1,0 +1,66 @@
+{
+  "id": "chatcmpl-01a191ef-affc-75ed-b8da-a0455af8f5f9",
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "content": "Amber alert on SRV-004 bay 2 \u2014 I'll verify the drive health before authorizing anything.",
+        "refusal": null,
+        "tool_calls": [
+          {
+            "id": "call_79d92392-6cf7-455d-ae57-7391028e56c6",
+            "type": "function",
+            "function": {
+              "name": "lookup_device",
+              "arguments": "{\"device_id\":\"SRV-004\"}"
+            }
+          },
+          {
+            "id": "call_f5918dae-9ee4-43f7-9ffc-30711698faee",
+            "type": "function",
+            "function": {
+              "name": "get_health_metrics",
+              "arguments": "{\"bay_id\":\"BAY-02\",\"device_id\":\"SRV-004\"}"
+            }
+          },
+          {
+            "id": "call_65dfd6f9-2e49-4340-aa1e-59ab19bee0f6",
+            "type": "function",
+            "function": {
+              "name": "get_recent_events",
+              "arguments": "{\"device_id\":\"SRV-004\",\"limit\":10}"
+            }
+          },
+          {
+            "id": "call_a4156dd9-f3a7-465a-9588-4fc5f27056e3",
+            "type": "function",
+            "function": {
+              "name": "search_manual",
+              "arguments": "{\"model_id\":\"SYNTH-SERVER-X\",\"query\":\"amber LED blinking BAY drive status\"}"
+            }
+          }
+        ],
+        "role": "assistant"
+      },
+      "logprobs": null
+    }
+  ],
+  "created": 1793449766,
+  "model": "muse-spark-1.3",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 604,
+    "prompt_tokens": 2145,
+    "total_tokens": 2749,
+    "completion_tokens_details": {
+      "reasoning_tokens": 309
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "recorded_at": "2026-10-31T12:34:33.194701+00:00",
+  "git_commit": "f957b3ed39b64deaf0aa15f8ae5cda4f9c96f53c",
+  "model_id": "muse-spark-1.3"
+}

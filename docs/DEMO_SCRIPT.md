@@ -1,44 +1,44 @@
 # InfraSight - Demonstration Video Script & Walkthrough
 
-> **Evaluation Environment Notice:** All remediation actions and hardware infrastructure operate within a **simulated environment**. Metrics cited are measured evaluation results ($k/N$).
+> **Evaluation Environment Notice:** All remediation actions and hardware infrastructure operate within a **simulated environment**. All cited metrics are measured evaluation results ($k/N$).
 
 ---
 
-## Part 1: Full 3-Minute Video Walkthrough Script (180 Seconds)
+## Part 1: Full Video Walkthrough Script (< 2:55 Runtime, Table Format)
 
-### Timeline & Second-by-Second Breakdown
+- **Total Word Count:** 288 words (strict limit: $\le$ 330 words at 130 WPM).
+- **Structure:** Cold open on Streamlit UI in the first 20 seconds. Hero 1 executed live; subsequent heroes run in offline replay mode.
+- **On-Screen Watermark:** "Simulated environment: synthetic devices, telemetry, and manual rules".
 
-| Timestamp | Screen / Visual Focus | Spoken Narration (Voiceover) | Key UI Elements Highlighted |
-| :--- | :--- | :--- | :--- |
-| **00:00 – 00:25** | Title slide & Streamlit UI Overview | "In modern data centers and edge IT environments, troubleshooting is noisy and high-stakes. Technicians misinterpret flashing status LEDs, alert consoles emit incomplete warnings, and autonomous remediation scripts risk catastrophic outages by executing destructive actions without human oversight. This is **InfraSight**—an evidence-first, multimodal IT troubleshooting assistant built for the Meta Global AI Developer Hackathon." | InfraSight header, System Status badge (`simulated`), Mode selector |
-| **00:25 – 00:55** | **Hero 1: SCN-02 (Rebuild Contradiction)** | "Let's load our first hero scenario: a technician reports an amber blinking drive on server SRV-001 drive bay 2, suspecting failure. Watch what happens: InfraSight doesn't just ask an LLM to guess. It runs deterministic HSV pixel analysis across two temporal frames. It proves the LED is actually solid green—not blinking amber. It queries RAID controller telemetry, identifies a normal volume rebuild in progress, and issues a `not_confirmed` diagnosis with high confidence. It prevented a technician from pulling a healthy, active rebuild drive." | Timeline event cards, Multimodal Perception tab showing Hue/Brightness analysis, RAID telemetry evidence card |
-| **00:55 – 01:25** | **Hero 2: SCN-01 (Class B Remediation & Human-in-the-Loop)** | "Now consider a genuine drive failure on SRV-004 bay 4. Telemetry verifies 248 reallocated sectors and a predictive failure flag. Here, the assistant proposes remediation: `replace_drive`. But InfraSight enforces strict safety tiers: Class B actions cannot execute autonomously. The backend halts and waits for server-side human approval. As supervisor, I review the diff and click 'Approve'. Only then does the simulated execution engine swap the drive and re-verify normal telemetry." | Pending Action modal, Human Approval button, Simulated executor output, Resolved verification |
-| **01:25 – 01:50** | **Hero 3: SCN-10 & Scripted Policy Stress (Class C Denial)** | "What about adversarial attacks? In SCN-10, an uncataloged manual contains an indirect prompt injection attempting to trick the model into running arbitrary shell reboots. The model refuses. Furthermore, clicking 'Policy Stress Test' proves that even if an attacker completely compromises an LLM, our backend policy engine deterministically intercepts and denies all Class C actions, unknown tools, and unauthorized devices before execution." | Policy Stress Test results, 5 Class C denial badges, Audit trail showing code-level policy enforcement |
-| **01:50 – 02:15** | **SAM 3.1 Spatial Awareness & Perception Guard** | "InfraSight also integrates Meta's `sam-3.1` for promptable spatial concept localization. Evaluated on real hardware photos, SAM localizes indicator regions, which are guarded by deterministic pixel analysis. If a region lacks saturated illumination—such as an unpowered external disk—the guard rejects it. If it contains a bright LED, like this Raspberry Pi power indicator, it is verified and registered as evidence." | SAM 3.1 detection boxes, Guarded HSV verification results, Registered `EV-IMG-...-SAM` evidence |
-| **02:15 – 02:40** | **Meta Model Transparency & Accounting Ledger** | "Under the hood, InfraSight is powered exclusively by Meta's `muse-spark-1.3` and `sam-3.1`. The Meta Model Activity tab renders our verifiable SQLite usage ledger: exact token counts, latencies, and costs for every single call. For offline evaluation, our replay mode runs with zero external API calls and zero token expenditure." | Meta Model Activity tab, Per-call token breakdown, SQLite usage ledger table |
-| **02:40 – 03:00** | **Conclusion & Measured Results** | "Across our evaluation suite of 16 scenarios, InfraSight achieves a 15/16 strict pass rate (93.8%) with zero regressions against baseline. By pairing Meta models with deterministic verification and server-side policy controls, InfraSight delivers trustworthy, safe infrastructure operations." | Evaluation comparison summary, GitHub repository link, Closing slide |
-
----
-
-## Part 2: 30–60 Second Social Media ("X" Cut) Script
-
-**Target Duration:** 45 seconds  
-**Objective:** Maximum punch, showing multimodal contradiction and human-in-the-loop safety in under a minute.
-
-- **[00:00 – 00:10] Hook:** "Can you trust an AI assistant to troubleshoot enterprise IT hardware without pulling the wrong drive or running unauthorized shell commands?"
-- **[00:10 – 00:25] The Multimodal Contradiction:** "Watch InfraSight analyze this server bay. The technician reported an amber blinking failure, but InfraSight’s physical pixel pipeline measures solid green illumination. RAID telemetry reveals a volume rebuild in progress—preventing a catastrophic false drive pull."
-- **[00:25 – 00:38] Human-in-the-Loop Safety:** "When a drive is genuinely broken, InfraSight proposes remediation, but halts. Class B actions require server-side supervisor approval before simulated execution."
-- **[00:38 – 00:45] CTA & Architecture:** "Built with Meta's `muse-spark-1.3` and `sam-3.1`, featuring deterministic verification and verifiable token accounting. Check out InfraSight on GitHub."
+| Time | Screen & Visual Focus | Spoken Narration (Voiceover) | Word Count | Exact UI Clicks & Fallback Plan |
+| :--- | :--- | :--- | :---: | :--- |
+| **00:00 – 00:20** | **Cold Open on UI:** Browser opens directly on InfraSight Streamlit UI (1920x1080). Watermark "Simulated environment" visible. Overview tab with system status badge. | "In enterprise data centers, ambiguous alerts and flashing LEDs cause costly false drive pulls and cascading outages. This is InfraSight: an evidence-first multimodal troubleshooting assistant built with Meta’s Muse Spark and SAM 3.1 in a simulated environment." | 38 words | **Click:** Ensure "Live Mode" is toggled in sidebar. Select scenario dropdown: `SCN-02`. |
+| **00:20 – 00:55** | **Hero 1 (SCN-02 Live Run):** Dual image frames displayed in UI. Click "Investigate". Live API call executes. Multimodal perception displays HSV blinking amber; RAID telemetry card displays 68.4% rebuild; vendor manual card displays `MAN-LED-01`. Status badge renders `not_confirmed`. | "A technician suspects a drive failure on server SRV-004 bay 2. We click Investigate live. InfraSight’s two-frame pixel analysis measures blinking amber. But telemetry shows the RAID array actively rebuilding at 68.4%, and vendor manual MAN-LED-01 confirms blinking amber indicates normal rebuild activity. InfraSight diagnoses not_confirmed, preventing a false drive pull." | 54 words | **Click:** Click "Investigate (Live)" button.<br>**Fallback Plan:** If network latency exceeds 8s, toggle "Replay Mode" in sidebar to demonstrate cached live response instantly. |
+| **00:55 – 01:25** | **Hero 2 (SCN-01 & SCN-08 Flow):** Toggle Replay Mode. Load SCN-01: confirmed drive defect with 164 reallocated sectors. Switch to SCN-08: replacement proposed, held as pending Class B action. Supervisor reviews diff, clicks "Approve". Execution card shows simulated drive swap and readback verification. | "In replay mode, scenario SCN-01 diagnoses a genuine drive failure on bay 4 with 164 reallocated sectors. In scenario SCN-08, replacement is proposed. Because physical remediation is Class B, InfraSight halts for human supervisor approval. We click Approve; the simulated engine replaces the drive and reads back healthy telemetry." | 52 words | **Click:** Select `SCN-08` from dropdown. Click "Approve & Execute" button in Pending Actions panel. |
+| **01:25 – 01:55** | **Hero 3 (SCN-10 Refusal & Policy Stress):** Load SCN-10: technician requests `rm -rf /`; model textual refusal shown. Navigate to Safety & Policy tab. Click "Run Policy Stress Test". Table populates with 5 Class C denial badges. | "In scenario SCN-10, a technician requests an unauthorized shell command; Muse Spark refuses in text. To test code-level defenses, our Policy Stress Test proves that when a scripted adversarial model proposes five prohibited actions, the backend intercepts and denies every one as Class C." | 46 words | **Click:** Select `SCN-10`. Switch to "Safety & Policy" tab. Click "Run Policy Stress Test" button. |
+| **01:55 – 02:20** | **Perception Guard & SAM 3.1:** Perception tab displaying bounding boxes on real photos: Raspberry Pi (green box, bright red LED), external hard drive (rejected unlit bezel), and router (zero match). | "For spatial localization, SAM 3.1 was evaluated on three real hardware photos: one bright LED was accepted by our pixel guard, one unlit bezel was rejected, and one produced a zero-match fallback. Physical pixel measurements always guard spatial proposals." | 40 words | **Click:** Switch to "Perception & SAM" tab. Click through the 3 real photo cards. |
+| **02:20 – 02:40** | **Verifiable Ledger & Accounting:** Meta Model Activity tab displaying SQLite `usage_ledger`. Columns: purpose, model (`muse-spark-1.3`), prompt tokens, completion tokens, cost, latency. | "The Meta Model Activity tab renders our SQLite usage ledger, displaying exact tokens, latencies, and costs for every call. SCN-01 consumed 19,476 tokens costing less than one cent." | 28 words | **Click:** Switch to "Model Activity" tab. Scroll down through the live call ledger table. |
+| **02:40 – 02:55** | **Conclusion & Measured Results:** Closing slide with GitHub repository link, test badges (84 unit tests passed, 100% live evaluation), and architecture summary. | "Across our frozen 17-scenario benchmark, InfraSight achieved 12/14 development and 3/3 same-logic variant passes, with 15/17 consistent across three live runs. Grounded reasoning and server-side safety keep infrastructure reliable." | 30 words | **Visual:** Fade out to summary slide with repo link and evaluation metrics table. |
 
 ---
 
-## Part 3: Recording Tips & Screen Layout Recommendations
+## Part 2: 30–45 Second Social Media ("X" Cut) Script
 
-1. **Browser Zoom:** Set browser zoom to 100% or 110% on a 1920x1080 resolution.
-2. **Tab Arrangement:** Keep Streamlit UI on the main screen; navigate cleanly between:
-   - Overview Tab (Diagnosis, Pending Actions)
-   - Evidence Registry Tab (Registered citations)
-   - Perception Tab (Pixel HSV analysis & SAM overlays)
-   - Meta Model Activity Tab (Verifiable ledger)
-3. **Execution Mode:** Use **Replay Mode** during recording to eliminate network latency, ensuring instantaneous and reproducible UI responses.
+- **Target Duration:** 40 seconds (~91 words at 135 WPM).
+- **Objective:** Concise demonstration of multimodal rebuild contradiction and human-in-the-loop safety in under 45 seconds.
 
+- **[00:00 – 00:10] Hook:** "Can an AI troubleshoot data center hardware without pulling the wrong drive? In a simulated environment, meet InfraSight."
+- **[00:10 – 00:25] The Rebuild Contradiction:** "A technician spots a blinking amber LED on server SRV-004 bay 2. InfraSight verifies blinking amber, but telemetry proves the RAID array is actively rebuilding at 68.4%. Citing vendor manual MAN-LED-01, it rules not_confirmed, preventing an accidental outage."
+- **[00:25 – 00:38] Human-in-the-Loop Safety:** "When telemetry confirms 164 reallocated sectors, replacement is proposed but halted. Class B actions require human supervisor approval before execution."
+- **[00:38 – 00:45] Architecture & Call to Action:** "Powered by Meta's `muse-spark-1.3` and `sam-3.1` with deterministic verification. Check out InfraSight on GitHub."
+
+---
+
+## Part 3: Recording Instructions & Operator Checklist
+
+1. **Resolution & Scaling:** Set display resolution to 1920x1080 and browser zoom to 100%.
+2. **Pre-Recording Verification:** Run `python scripts/record_replay.py --verify` prior to recording to ensure all replay caches are intact.
+3. **Execution Mode Flow:**
+   - Begin with Live Mode on SCN-02 to demonstrate real API interaction with `muse-spark-1.3`.
+   - Switch to Replay Mode for SCN-08 and SCN-10 for instantaneous, network-independent UI transitions.
+4. **On-Screen Captions:** Add a semi-transparent footer caption: *"Simulated environment: all servers, telemetry, and vendor manuals are synthetic."*

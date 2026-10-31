@@ -1,0 +1,50 @@
+{
+  "id": "chatcmpl-01a191f4-f809-7534-abb7-e1d07627ce89",
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "content": "Initial checks show warning signs beneath the green LED \u2014 I'll pull vendor guidance to confirm the assessment.",
+        "refusal": null,
+        "tool_calls": [
+          {
+            "id": "call_0b33b765-d5bb-4800-a271-28be9426af89",
+            "type": "function",
+            "function": {
+              "name": "search_manual",
+              "arguments": "{\"model_id\":\"SYNTH-SERVER-X\",\"query\":\"pending sectors SMART warning threshold\"}"
+            }
+          },
+          {
+            "id": "call_9d7fcaf9-715c-4d2d-b443-586fce05eb40",
+            "type": "function",
+            "function": {
+              "name": "search_manual",
+              "arguments": "{\"model_id\":\"SYNTH-SERVER-X\",\"query\":\"EVT-NVME-MEDIA-WARN\"}"
+            }
+          }
+        ],
+        "role": "assistant"
+      },
+      "logprobs": null
+    }
+  ],
+  "created": 1793450113,
+  "model": "muse-spark-1.3",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 1220,
+    "prompt_tokens": 4205,
+    "total_tokens": 5425,
+    "completion_tokens_details": {
+      "reasoning_tokens": 1044
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 2033
+    }
+  },
+  "recorded_at": "2026-10-31T12:35:36.674330+00:00",
+  "git_commit": "f957b3ed39b64deaf0aa15f8ae5cda4f9c96f53c",
+  "model_id": "muse-spark-1.3"
+}

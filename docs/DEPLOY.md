@@ -34,9 +34,11 @@ Configure the following variables in your hosting provider's dashboard:
 - `MAX_SESSION_LIVE_RUNS`: Max live investigation runs per session ID. Default: `3`.
 - `APPROVER_TOKEN`: Secret Bearer token required to approve Class B actions (`POST /actions/{id}/approve`).
 
-### C. Networking & Ports
+### C. Networking, Ports & Security Switches
 - `PORT`: Public web port assigned by the hosting environment (default: `7860` for Hugging Face Spaces, `10000` for Render). Streamlit binds to this port.
 - `BACKEND_PORT`: Internal loopback port for the FastAPI backend service (default: `8000`).
+- `STREAMLIT_DISABLE_XSRF`: Optional security switch (default: `false`). XSRF protection is enabled by default. Set to `true` ONLY if deployed on Hugging Face Spaces and image upload tests fail due to HF's embedded iframe wrapper.
+- `STREAMLIT_DISABLE_CORS`: Optional security switch (default: `false`). CORS protection is enabled by default. Set to `true` ONLY if cross-origin websocket errors occur in strict reverse-proxy environments.
 
 ---
 
@@ -51,7 +53,7 @@ Configure the following variables in your hosting provider's dashboard:
 2. **Repository Configuration:**
    - Push this repository to your Space remote.
    - The included `Dockerfile` creates a non-root user with UID `1000` (required by Hugging Face Spaces) and exposes port `7860`.
-   - Streamlit is configured with `--server.enableXsrfProtection false` to allow seamless interaction within Hugging Face's embedded iframe wrapper.
+   - Streamlit runs with XSRF and CORS protection enabled by default. If running inside Hugging Face's embedded iframe wrapper and custom image upload encounters XSRF blocks, set environment secret `STREAMLIT_DISABLE_XSRF=true` in Space Settings.
 3. **Environment Secrets (Optional):**
    - In Space Settings -> **Variables and secrets**, add `LIVE_PASSWORD`, `APPROVER_TOKEN`, and optionally `META_API_KEY`.
    - If `META_API_KEY` is not provided, the Space runs entirely in zero-cost offline replay mode.

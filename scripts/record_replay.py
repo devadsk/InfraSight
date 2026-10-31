@@ -8,9 +8,11 @@ Usage:
 """
 
 import argparse
+import datetime
 import json
 import os
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -30,24 +32,11 @@ class TrackingMetaClient(MetaClient):
         super().__init__(**kwargs)
         self.recorded_keys = []
 
-    def chat_completion(self, *args, **kwargs):
-        resp, is_replay = super().chat_completion(*args, **kwargs)
-        # Compute payload key
-        used_model = kwargs.get("model") or self.default_model
-        payload = {
-            "model": used_model,
-            "messages": kwargs.get("messages", args[0] if args else []),
-            "temperature": kwargs.get("temperature", 0.0),
-        }
-        if "tools" in kwargs and kwargs["tools"]:
-            payload["tools"] = kwargs["tools"]
-            payload["tool_choice"] = kwargs.get("tool_choice") or "auto"
-        if "response_format" in kwargs and kwargs["response_format"]:
-            payload["response_format"] = kwargs["response_format"]
-
-        cache_key = self._compute_cache_key(payload)
-        self.recorded_keys.append(cache_key)
-        return resp, is_replay
+    def _compute_cache_key(self, payload: dict) -> str:
+        k = super()._compute_cache_key(payload)
+        if k not in self.recorded_keys:
+            self.recorded_keys.append(k)
+        return k
 
 
 def record_scenarios(scenario_ids: list[str]) -> list[str]:
@@ -106,14 +95,30 @@ def record_scenarios(scenario_ids: list[str]) -> list[str]:
         conf_val = getattr(diag.confidence, "value", diag.confidence)
         print(f"  Result: status={st_val}, confidence={conf_val}, keys={len(tracking_client.recorded_keys)}")
 
-        # Copy each cache file to eval/replay/
+        try:
+            git_commit = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode().strip()
+        except Exception:
+            git_commit = "unknown"
+        recorded_at = datetime.datetime.now(datetime.timezone.utc).isoformat()
+
+        # Copy each cache file to eval/replay/ and inject provenance
         for key in tracking_client.recorded_keys:
             src = CACHE_DIR / f"{key}.json"
             dst = REPLAY_DIR / f"{key}.json"
+            entry = None
             if src.exists():
-                shutil.copy2(src, dst)
-                all_keys.append(key)
+                with open(src, "r", encoding="utf-8") as f:
+                    entry = json.load(f)
             elif dst.exists():
+                with open(dst, "r", encoding="utf-8") as f:
+                    entry = json.load(f)
+
+            if entry is not None:
+                entry["recorded_at"] = recorded_at
+                entry["git_commit"] = git_commit
+                entry["model_id"] = entry.get("model") or "muse-spark-1.3"
+                with open(dst, "w", encoding="utf-8") as f:
+                    json.dump(entry, f, indent=2)
                 all_keys.append(key)
             else:
                 print(f"  Warning: Cache file for key {key} not found at {src}")

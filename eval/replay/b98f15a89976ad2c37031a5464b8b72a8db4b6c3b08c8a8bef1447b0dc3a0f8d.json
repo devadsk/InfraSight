@@ -1,0 +1,66 @@
+{
+  "id": "chatcmpl-01a191f4-6833-77eb-8c2c-f88d79edd68c",
+  "choices": [
+    {
+      "finish_reason": "tool_calls",
+      "index": 0,
+      "message": {
+        "content": "Amber alert on BAY-04 \u2014 I'll verify telemetry and logs before judging drive health.",
+        "refusal": null,
+        "tool_calls": [
+          {
+            "id": "call_a43e239c-1c99-4bcd-92d2-debe1c32fccf",
+            "type": "function",
+            "function": {
+              "name": "lookup_device",
+              "arguments": "{\"device_id\":\"SRV-004\"}"
+            }
+          },
+          {
+            "id": "call_705c39ed-93fd-4753-af2e-fbc9ec9a7d53",
+            "type": "function",
+            "function": {
+              "name": "get_health_metrics",
+              "arguments": "{\"bay_id\":\"BAY-04\",\"device_id\":\"SRV-004\"}"
+            }
+          },
+          {
+            "id": "call_c96ee265-de4b-48af-866d-723d45299cda",
+            "type": "function",
+            "function": {
+              "name": "get_recent_events",
+              "arguments": "{\"device_id\":\"SRV-004\",\"limit\":10}"
+            }
+          },
+          {
+            "id": "call_55e71b40-589b-4f24-86b9-9c33cb846be5",
+            "type": "function",
+            "function": {
+              "name": "search_manual",
+              "arguments": "{\"model_id\":\"SYNTH-SERVER-X\",\"query\":\"solid amber LED drive bay\"}"
+            }
+          }
+        ],
+        "role": "assistant"
+      },
+      "logprobs": null
+    }
+  ],
+  "created": 1793450076,
+  "model": "muse-spark-1.3",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 400,
+    "prompt_tokens": 2151,
+    "total_tokens": 2551,
+    "completion_tokens_details": {
+      "reasoning_tokens": 111
+    },
+    "prompt_tokens_details": {
+      "cached_tokens": 0
+    }
+  },
+  "recorded_at": "2026-10-31T12:35:00.720715+00:00",
+  "git_commit": "f957b3ed39b64deaf0aa15f8ae5cda4f9c96f53c",
+  "model_id": "muse-spark-1.3"
+}

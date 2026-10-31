@@ -59,5 +59,8 @@
     "prompt_tokens_details": {
       "cached_tokens": 0
     }
-  }
+  },
+  "recorded_at": "2026-10-31T12:20:34.433869+00:00",
+  "git_commit": "f957b3ed39b64deaf0aa15f8ae5cda4f9c96f53c",
+  "model_id": "muse-spark-1.3"
 }
