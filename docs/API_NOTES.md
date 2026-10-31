@@ -25,7 +25,7 @@
 - **SAM 3.1:** Exclusively hosted on `/v1/responses`. (Calling `/v1/chat/completions` returns HTTP 404: `'The model sam-3.1 is not available on this endpoint. Use /v1/responses.'`).
 
 ### B. Observed SAM 3.1 Marker Format (From Real Detection)
-- **Raw Evidence:** Preserved in [`docs/sam_samples/sam_rectangle_sample.json`](file:///d:/InfraSight/docs/sam_samples/sam_rectangle_sample.json).
+- **Raw Evidence:** Preserved in [`docs/sam_samples/sam_rectangle_sample.json`](docs/sam_samples/sam_rectangle_sample.json).
 - **Stream/Line Format:**
   `<0f><ID><|box;x1=...;y1=...;x2=...;y2=...;w=...;h=...|><|mask;x=0;y=0;data=...|>,<ID><|box...>`
 - **Observed Coordinate Accuracy:** Bounding boxes matched synthetic drawing geometry precisely (`x1=20, y1=20, x2=236, y2=236` for drive tray outer border; `x1=40, y1=90, x2=216, y2=130` for label banner).

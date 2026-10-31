@@ -81,5 +81,5 @@ Across our standardized evaluation benchmark of 17 scenarios:
 - **Full 3-Minute Walkthrough:** [YouTube / Demo Video Link](https://youtube.com/example)
 - **Short 45s Social Cut:** Included in `docs/DEMO_SCRIPT.md`
 - **Interactive Web App:** `http://localhost:8501` (Streamlit + FastAPI)
-- **Deployment Documentation:** [`docs/DEPLOY.md`](file:///d:/InfraSight/docs/DEPLOY.md)
+- **Deployment Documentation:** [`docs/DEPLOY.md`](docs/DEPLOY.md)
 
