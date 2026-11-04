@@ -8,7 +8,7 @@ Validates diagnoses produced by the AI model:
 5. Final status must never be 'resolved_in_simulation' without a verified simulated execution result.
 """
 
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Set
 from backend import evidence
 from backend.schemas import InvestigationStatus, Diagnosis
 

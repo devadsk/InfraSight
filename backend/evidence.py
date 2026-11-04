@@ -11,14 +11,12 @@ Provides authoritative lookups and physical pixel analysis without using an LLM:
 """
 
 import json
-import os
 import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 from PIL import Image
 
 from backend.schemas import (
-    ConfidenceEnum,
     EvidenceRecord,
     EvidenceType,
     PixelColorResult,

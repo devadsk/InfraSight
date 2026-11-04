@@ -22,9 +22,7 @@ if str(ROOT_DIR) not in sys.path:
 
 from backend.evidence import (
     resolve_source_id,
-    resolve_device,
     get_telemetry,
-    search_manuals,
     analyze_led_pixels,
     reload_fixtures
 )

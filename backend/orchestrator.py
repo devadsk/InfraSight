@@ -13,7 +13,7 @@ import base64
 import os
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from backend import evidence
 from backend.meta_client import MetaClient
@@ -24,7 +24,6 @@ from backend.storage import (
     record_audit_event,
     record_incident,
     save_incident_state,
-    update_incident_status,
 )
 from backend.tools import INVESTIGATION_TOOLS, ToolDispatcher
 from backend.verifier import DeterministicVerifier, VerificationResult

@@ -8,10 +8,10 @@ import copy
 import hashlib
 import json
 from datetime import datetime, timezone, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict
 
 from backend import evidence
-from backend.policy import ActionClass, PolicyEngine, CLASS_B_ACTIONS, CLASS_C_ACTIONS
+from backend.policy import CLASS_C_ACTIONS
 from backend.storage import (
     get_incident,
     get_pending_action,

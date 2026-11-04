@@ -15,15 +15,13 @@ import uuid
 from typing import Any, Dict, List, Optional
 from pathlib import Path
 
-from backend.policy import PolicyEngine, ActionClass
+from backend.policy import PolicyEngine
 from backend.tools import ToolDispatcher
 from backend.executor import SimulatedExecutionEngine
 from backend.storage import (
     record_incident,
     record_audit_event,
     get_incident_audit_trail,
-    get_incident,
-    get_pending_actions_for_incident,
 )
 
 STRESS_TEST_LABEL = (

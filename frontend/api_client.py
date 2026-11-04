@@ -7,8 +7,7 @@ Contains zero business logic or authorization.
 
 import json
 import os
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple
 import requests
 
 
