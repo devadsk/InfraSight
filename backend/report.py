@@ -5,11 +5,9 @@ Clearly marked as synthetic/simulated.
 """
 
 import json
-from typing import Any, Dict, List, Optional
 from backend.storage import (
     get_incident,
     get_incident_audit_trail,
-    get_incident_state,
     get_incident_usage,
     get_pending_actions_for_incident,
 )

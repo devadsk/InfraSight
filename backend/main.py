@@ -6,7 +6,6 @@ server-side human approval workflow, and simulated remediation execution.
 
 import json
 import os
-import shutil
 import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -19,7 +18,6 @@ from backend.executor import SimulatedExecutionEngine
 from backend.meta_client import MetaClient
 from backend.orchestrator import InvestigationOrchestrator
 from backend.report import generate_incident_markdown_report
-from backend.schemas import InvestigationStatus
 from backend.storage import (
     get_incident,
     get_incident_audit_trail,
