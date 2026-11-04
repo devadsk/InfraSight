@@ -102,6 +102,7 @@ def test_daily_spend_cap_enforcement():
 
 def test_per_session_live_investigation_quota():
     """Live investigations are capped at 3 per session."""
+    os.environ["MAX_SESSION_LIVE_RUNS"] = "3"
     client = TestClient(app)
     session_headers = {"X-Session-ID": "tester-session-99"}
 

@@ -6,6 +6,8 @@ All hardware, telemetry, logs, and manuals are synthetic (Simulated Environment)
 """
 
 import json
+from dotenv import load_dotenv
+load_dotenv()
 import os
 from pathlib import Path
 from typing import Optional
@@ -158,7 +160,7 @@ with st.sidebar:
     if st.session_state.execution_mode == "replay":
         st.caption("⚡ Offline Replay: Works with zero tokens, no latency, and no API key.")
     else:
-        st.caption("🌐 Live Mode: Calls Meta Model API (`muse-spark-1.3`). Subject to spend cap ($5/day) & session quota (3 runs).")
+        st.caption("🌐 Live Mode: Calls Meta Model API (`muse-spark-1.3`). Subject to spend cap & session quota.")
         live_pwd = st.text_input("Live Mode Passcode (LIVE_PASSWORD):", type="password", key="demo_live_pwd", help="Required if host deployed with LIVE_PASSWORD.")
 
     st.markdown("---")
@@ -211,8 +213,8 @@ with st.sidebar:
     st.info(
         "ℹ️ **Public Demo Controls (Simulated Environment):**\n"
         "- Default: **Offline Replay Mode** with zero token consumption.\n"
-        "- Live Model Cap: **$5.00/day** global spend limit (ledger-enforced).\n"
-        "- Per-Session Limit: **3 live investigations**.\n"
+        f"- Live Model Cap: **${float(os.getenv('DAILY_SPEND_CAP_USD', '50.0')):.2f}/day** global spend limit (ledger-enforced).\n"
+        f"- Per-Session Limit: **{os.getenv('MAX_SESSION_LIVE_RUNS', '100')} live investigations**.\n"
         "- Custom uploads auto-delete after processing."
     )
 
