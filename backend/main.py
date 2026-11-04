@@ -5,6 +5,8 @@ server-side human approval workflow, and simulated remediation execution.
 """
 
 import json
+from dotenv import load_dotenv
+load_dotenv()
 import os
 import uuid
 from pathlib import Path
